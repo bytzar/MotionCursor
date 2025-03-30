@@ -117,9 +117,9 @@ int main()
                 int nuhull = 1;
                 if (data[0] < 0) { nuhull = -1; }
 
-                float MaxGyroForComforty = 175.0f;
+                float MaxGyroForComforty = 125.0f;
 
-                float MaxGyroForComfortx = 150.0f;
+                float MaxGyroForComfortx = 125.0f;
 
                 if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
                 if (data[1] < -MaxGyroForComforty) { data[1] = -MaxGyroForComforty; }
