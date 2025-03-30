@@ -100,7 +100,7 @@ int main()
                 DYNdata[1] -= avgx;
                 DYNdata[0] -= avgy;
 
-                const float threashold = 0.1f; //0.1f
+                const float threashold = 0.01f; //0.1f
 
                 if (DYNdata[0] > threashold || DYNdata[0] < -threashold)
                 {
