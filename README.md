@@ -31,4 +31,5 @@ This was designed with the Nintendo Switch pro conroller in mind, but should wor
 - Multi controller support
 - Mapping home button to ctrl + Tap (Enables having both hold and toggle for Gamepadview. Useful for Splatoon where you may need toggle functionality in queue but hold mid match.)
 - Record cursor position to shortcut frequent actions (e.g. map super jump to dpad)
+- Right stick for percise cursor adjustments
 - Polish (refractoring, clean up, etc.)
