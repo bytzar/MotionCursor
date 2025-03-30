@@ -142,27 +142,7 @@ int main()
                 std::cout << "Gyro: X=" << data[0] << " Y=" << data[1] << std::endl;
                 std::cout << "Gyro: X=" << DYNdata[0] << " Y=" << DYNdata[1] << std::endl;
 
-
-                //std::cout << SDL_GetGamepadButton(moruk, SDL_GAMEPAD_BUTTON_MISC1);
-
-
                 GetCursorPos(&cursorPos);
-
-                /*
-                Adjust position based on gyro input
-                float sensitivity = 1.0f; // Adjust based on preference
-                int movespeed = DYNdata[0] / 10 * screenHeight / 100;
-                int movespeedx = DYNdata[1] / 10 * screenWidth / 100;
-                */
-
-                //cursorPos.y -= movespeed;
-                //cursorPos.x -= movespeedx;
-                //if (newposx > screenHeight / 2) { newposx = screenHeight / 2; }
-                //if (newposx < -screenHeight / 2) { newposx = -screenHeight / 2; }
-
-                //if (newposx + screenWidth / 2 > screenWidth) { data[1] = screenWidth / 2; }
-                //if (newposx - screenWidth / 2 < -screenWidth) { data[1] = -screenWidth / 2; }
-
 
                 cursorPos.y = -newposy + screenHeight / 2;
                 cursorPos.x = -newposx + screenWidth / 2;
