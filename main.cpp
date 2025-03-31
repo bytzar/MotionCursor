@@ -38,7 +38,7 @@ int main()
     std::cout << "\n isenab now " << sen;
 
     float rete = SDL_GetGamepadSensorDataRate(moruk, type);
-    std::cout << "\n" << rete << "\n";
+    std::cout << "\n" << rete << "\n ";
 
     float rate = SDL_GetGamepadSensorDataRate(moruk, type);
     std::cout << "\n" << rate << "\n";
@@ -100,7 +100,7 @@ int main()
                 DYNdata[1] -= avgx;
                 DYNdata[0] -= avgy;
 
-                const float threashold = 0.01f; //0.1f
+                const float threashold = 0.02f; //0.01f min maybe, maybe controller specific ()customizeable. automatic threshold. während calibration test values also gucken ob im bereich 000.0003 oder 0.0007 und je nachdem plus x prozent davon als threshold
 
                 if (DYNdata[0] > threashold || DYNdata[0] < -threashold)
                 {
@@ -153,14 +153,15 @@ int main()
                 if (SDL_GetGamepadButton(moruk, SDL_GAMEPAD_BUTTON_EAST))
                 {
                     inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+                    SendInput(1, inputs, sizeof(INPUT));
                     wasDown = true;
                 }
                 else if (wasDown)
                 {
                     inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+                    SendInput(1, inputs, sizeof(INPUT));
                     wasDown = false;
                 }
-                SendInput(1, inputs, sizeof(INPUT));
             }
         }
     }
