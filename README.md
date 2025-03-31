@@ -22,7 +22,8 @@ This was designed with the Nintendo Switch pro conroller in mind, but should wor
 # Compile yourself
 Have git installed.
 
-- Run `git clone --recursive https://github.com/bytzar/MotionCursor.git` in a terminal window 
+- Open a Terminal window
+- Run `git clone --recursive https://github.com/bytzar/MotionCursor.git`
 - open motioncursor.sln
 - compile main.cpp
 
