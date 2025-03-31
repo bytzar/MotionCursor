@@ -28,7 +28,8 @@ Have CMake installed.
 - Run `mkdir build` and `cd build`
 - Run `cmake -G "Visual Studio 17 2022" ..` (Adjust according to IDE)
 - Open newly created MotionCursor.sln in build
-- Compile main.cpp
+- You might have to set MotionCurser as Startup Project in the solution explorer
+- Compile
 
 
 # Roadmap
