@@ -10,7 +10,7 @@
 
 int main()
 {
-    if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0)
+    if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
     {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 1;
@@ -23,6 +23,7 @@ int main()
 
     if (on == 0)
     {
+        std::cout << "no Sdl controllers connected.";
         return 3;
     }
 
@@ -46,12 +47,8 @@ int main()
     float rete = SDL_GetGamepadSensorDataRate(moruk, type);
     std::cout << "\n" << rete << "\n ";
 
-    float rate = SDL_GetGamepadSensorDataRate(moruk, type);
-    std::cout << "\n" << rate << "\n";
-
-
-    float data[2] = { 0.0f, 0.0f }; //REset yaw pitch 
-    float DYNdata[2] = { 0.0f, 0.0f };
+    float data[2] = { 0.0f, 0.0f }; //Reset delta yaw and pitch for cursor
+    float DYNdata[2] = { 0.0f, 0.0f }; //Reset read delta yaw and pitch
 
     if (!SDL_GamepadSensorEnabled(moruk, SDL_SENSOR_GYRO)) {
         std::cerr << "Gyroscope failed to enable!" << std::endl;
@@ -61,12 +58,12 @@ int main()
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    // Move cursor to center of screen
+
     float drift[2] = { 0.0f, 0.0f };
     float xDrift[10];
     float yDrift[10];
 
-    for (int i = 0; i < 10; i++) //calibaration
+    for (int i = 0; i < 10; i++) //calibaration, takes 10 samples of idle gyro for avg and counters later TODO: needs feedack for end of calibration
     {
         SDL_PumpEvents();
 
@@ -79,19 +76,20 @@ int main()
     }
     float avgx = std::accumulate(xDrift + 1, xDrift + 10, 0.0f) / 9.0f; //skips first value because it is 0 for ome reason. then divides by 9 as ve avergae 9 values
     float avgy = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
-    SetCursorPos(screenWidth / 2, screenHeight / 2);
+
+    // Move cursor to center of screen
+    //SetCursorPos(screenWidth / 2, screenHeight / 2); //unnecessary?
 
     POINT cursorPos;
-
     INPUT inputs[1] = {};
 
-    // Mouse down (press left button)
+    // input type is mouse
     inputs[0].type = INPUT_MOUSE;
     bool wasDown = false;
     while (true)
     {
         SDL_PumpEvents();
-        if (SDL_GetGamepadButton(moruk, SDL_GAMEPAD_BUTTON_MISC1))
+        if (SDL_GetGamepadButton(moruk, SDL_GAMEPAD_BUTTON_MISC1)) //checks for activation button be pressed
         {
             cursorPos.x =  screenWidth / 2;
             cursorPos.y = screenHeight / 2;
@@ -103,12 +101,13 @@ int main()
 
                 SDL_GetGamepadSensorData(moruk, type, DYNdata, 2);
 
-                DYNdata[1] -= avgx;
+                //subtracts drift
+                DYNdata[1] -= avgx; 
                 DYNdata[0] -= avgy;
 
                 const float threashold = 0.02f; //0.01f min maybe, maybe controller specific ()customizeable. automatic threshold. während calibration test values also gucken ob im bereich 000.0003 oder 0.0007 und je nachdem plus x prozent davon als threshold
 
-                if (DYNdata[0] > threashold || DYNdata[0] < -threashold)
+                if (DYNdata[0] > threashold || DYNdata[0] < -threashold) //discard if movement is so minor it is probably drift
                 {
                     data[0] += DYNdata[0];
                 }
@@ -124,7 +123,6 @@ int main()
                 if (data[0] < 0) { nuhull = -1; }
 
                 float MaxGyroForComforty = 125.0f;
-
                 float MaxGyroForComfortx = 125.0f;
 
                 if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
@@ -134,8 +132,8 @@ int main()
                 if (data[0] < -MaxGyroForComfortx) { data[0] = -MaxGyroForComfortx; }
 
                 float newposx = 0.0f;
-
                 float newposy = 0.0f;
+
                 if (!data[1] == 0)
                 {
                     newposx = (((abs(data[1]) / MaxGyroForComforty) * (float)(screenWidth / 2)) * nill); 
@@ -146,7 +144,7 @@ int main()
                 }
 
                 std::cout << "Gyro: X=" << data[0] << " Y=" << data[1] << std::endl;
-                std::cout << "Gyro: X=" << DYNdata[0] << " Y=" << DYNdata[1] << std::endl;
+                std::cout << "Gyro Delta: X=" << DYNdata[0] << " Delta Y=" << DYNdata[1] << std::endl;
 
                 GetCursorPos(&cursorPos);
 
@@ -156,13 +154,13 @@ int main()
                 // Move the mouse
                 SetCursorPos(cursorPos.x, cursorPos.y);
 
-                if (SDL_GetGamepadButton(moruk, SDL_GAMEPAD_BUTTON_EAST))
+                if (SDL_GetGamepadButton(moruk, SDL_GAMEPAD_BUTTON_EAST) && !wasDown)
                 {
                     inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
                     SendInput(1, inputs, sizeof(INPUT));
                     wasDown = true;
                 }
-                else if (wasDown)
+                else if (wasDown && !SDL_GetGamepadButton(moruk, SDL_GAMEPAD_BUTTON_EAST))
                 {
                     inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
                     SendInput(1, inputs, sizeof(INPUT));
