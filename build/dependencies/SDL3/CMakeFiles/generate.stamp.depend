@@ -1,0 +1,51 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-4.0/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeDependentOption.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeParseArguments.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CMakePushCheckState.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckCCompilerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckCSourceRuns.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckCXXCompilerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckCXXSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckIncludeFile.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckLanguage.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckLibraryExists.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckLinkerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckStructHasMember.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/CheckSymbolExists.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindGit.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/FindPkgConfig.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/GNUInstallDirs.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CheckCompilerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CheckFlagCommonConfig.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CheckLinkerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CheckSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CheckSourceRuns.cmake
+C:/Program Files/CMake/share/cmake-4.0/Modules/WriteBasicConfigVersionFile.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/.git/modules/dependencies/SDL3/HEAD
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/.git/modules/dependencies/SDL3/refs/heads/main
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/dependencies/SDL3/CMakeFiles/SDL_build_config.h.intermediate
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/dependencies/SDL3/CMakeFiles/git-data/grabRef.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/CMakeLists.txt
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/3rdparty.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/FindLibUSB.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/GetGitRevisionDescription.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/GetGitRevisionDescription.cmake.in
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/PreseedEmscriptenCache.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/PreseedMSVCCache.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/SDL3Config.cmake.in
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/macros.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/sdlchecks.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/sdlcompilers.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/sdlcpu.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/sdlmanpages.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/sdlplatform.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/cmake/sdltargets.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/include/build_config/SDL_build_config.h.cmake
+C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/include/build_config/SDL_revision.h.cmake

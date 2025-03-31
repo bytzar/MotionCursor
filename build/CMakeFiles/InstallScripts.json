@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/cmake_install.cmake",
+		"C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/dependencies/SDL3/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

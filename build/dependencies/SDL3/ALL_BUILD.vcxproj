@@ -1,0 +1,193 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ResolveNugetPackages>false</ResolveNugetPackages>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{87ABF99E-8E89-358A-BA0E-826EEBF0BDB4}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor -BC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build --check-stamp-file C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/dependencies/SDL3/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-4.0\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeDependentOption.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeParseArguments.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLanguage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPkgConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckFlagCommonConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\HEAD;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\refs\heads\main;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\SDL_build_config.h.intermediate;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\git-data\grabRef.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\3rdparty.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\FindLibUSB.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedEmscriptenCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedMSVCCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\SDL3Config.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\macros.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlchecks.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcompilers.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcpu.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlmanpages.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlplatform.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdltargets.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_build_config.h.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_revision.h.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor -BC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build --check-stamp-file C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/dependencies/SDL3/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-4.0\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeDependentOption.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeParseArguments.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLanguage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPkgConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckFlagCommonConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\HEAD;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\refs\heads\main;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\SDL_build_config.h.intermediate;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\git-data\grabRef.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\3rdparty.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\FindLibUSB.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedEmscriptenCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedMSVCCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\SDL3Config.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\macros.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlchecks.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcompilers.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcpu.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlmanpages.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlplatform.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdltargets.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_build_config.h.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_revision.h.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor -BC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build --check-stamp-file C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/dependencies/SDL3/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-4.0\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeDependentOption.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeParseArguments.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLanguage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPkgConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckFlagCommonConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\HEAD;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\refs\heads\main;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\SDL_build_config.h.intermediate;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\git-data\grabRef.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\3rdparty.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\FindLibUSB.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedEmscriptenCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedMSVCCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\SDL3Config.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\macros.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlchecks.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcompilers.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcpu.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlmanpages.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlplatform.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdltargets.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_build_config.h.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_revision.h.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/dependencies/SDL3/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor -BC:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build --check-stamp-file C:/Users/baehrei/Documents/MotionCursor/MotionCursorVS/MotionCursor/build/dependencies/SDL3/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-4.0\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeCheckCompilerFlagCommonPatterns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeDependentOption.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakeParseArguments.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckCXXSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLanguage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckStructHasMember.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\CheckSymbolExists.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindGit.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\FindPkgConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckCompilerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckFlagCommonConfig.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckLinkerFlag.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\Internal\CheckSourceRuns.cmake;C:\Program Files\CMake\share\cmake-4.0\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\HEAD;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\.git\modules\dependencies\SDL3\refs\heads\main;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\SDL_build_config.h.intermediate;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\git-data\grabRef.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\3rdparty.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\FindLibUSB.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\GetGitRevisionDescription.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedEmscriptenCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\PreseedMSVCCache.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\SDL3Config.cmake.in;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\macros.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlchecks.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcompilers.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlcpu.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlmanpages.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdlplatform.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\cmake\sdltargets.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_build_config.h.cmake;C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\dependencies\SDL3\include\build_config\SDL_revision.h.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\ZERO_CHECK.vcxproj">
+      <Project>{CD1E7B5E-D111-3A75-9B81-E43B02F9F018}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\SDL3-shared.vcxproj">
+      <Project>{C2845120-0A4D-379B-8F4E-56BDADF463D4}</Project>
+      <Name>SDL3-shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\SDL3_test.vcxproj">
+      <Project>{C7562846-6E29-3CD7-ACA1-82137A189B7A}</Project>
+      <Name>SDL3_test</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\baehrei\Documents\MotionCursor\MotionCursorVS\MotionCursor\build\dependencies\SDL3\SDL_uclibc.vcxproj">
+      <Project>{6C159FBC-3EE6-3A68-BEE0-216950D5E80A}</Project>
+      <Name>SDL_uclibc</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
