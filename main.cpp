@@ -20,6 +20,10 @@ int main()
 
     int on;
     SDL_JoystickID* gem = SDL_GetGamepads(&on);
+    if (on == 0)
+    {
+        return 256;
+    }
     const char* name = SDL_GetGamepadNameForID(*gem);
     std::cout << *gem << "\n " << name;
 
