@@ -30,3 +30,5 @@ add_custom_command(TARGET MotionCursor POST_BUILD
         "$<TARGET_FILE:SDL3::SDL3>"
         "$<TARGET_FILE_DIR:MotionCursor>"
 )
+
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MotionCursor)
