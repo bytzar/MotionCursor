@@ -19,6 +19,15 @@ It may even serve accesibility purposes. Should there be such need reach out so 
 
 This was designed with the Nintendo Switch pro conroller in mind, but should work with others as well. While the screenshot button is held down, gyro inputs will be mapped to the mouse cursor and the A button (East) to left mouse click. The A button can be held down for holding the left click. Both will release parallely. Additionaly, before gyro data is mapped to the cursor it is reset to the middle of the screen.
 
+# Compile yourself
+Have git installed.
+
+- Open a Terminal window
+- Run `git clone --recursive https://github.com/bytzar/MotionCursor.git`
+- open motioncursor.sln
+- compile main.cpp
+
+
 # Roadmap
 
 - Customizeable input mapping
