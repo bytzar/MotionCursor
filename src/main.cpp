@@ -177,7 +177,7 @@ int main() //soon to be int init()
     if (countControllers == 0)
     {
         std::cout << "no Sdl controllers connected.";
-        return 3;
+        //return 3;
     }
 
     std::vector<const char*> controllers(countControllers);
@@ -190,34 +190,38 @@ int main() //soon to be int init()
 
     std::thread guirenderer(mainRender, NULL, nullptr);
 
-    const char* name = SDL_GetGamepadNameForID(*gem);
-    std::cout << *gem << "\n " << name;
+	if (countControllers > 0)
+	{
+		//const char* name = SDL_GetGamepadNameForID(*gem);
+		//std::cout << *gem << "\n " << name;
 
-    //activeCon = SDL_OpenGamepad(1); //provisorisch ne doch auto select den ersten beim ersten mal falls oh... falls vorhanden
-	UpdateCon(0);
+		//activeCon = SDL_OpenGamepad(1); //provisorisch ne doch auto select den ersten beim ersten mal falls oh... falls vorhanden
+		UpdateCon(0);
 
-	bool tf = SDL_GamepadConnected(activeCon);
+		//bool tf = SDL_GamepadConnected(activeCon);
 
-    std::cout << tf << " " << activeCon;
+		//std::cout << tf << " " << activeCon;
     
-    SDL_SensorType type = SDL_SENSOR_GYRO;
-    bool cem = SDL_GamepadHasSensor(activeCon, type); //add gyro joycon support
-    std::cout << "\n\n\n" << cem;
+		SDL_SensorType type = SDL_SENSOR_GYRO;
+		bool cem = SDL_GamepadHasSensor(activeCon, type); //add gyro joycon support
+		std::cout << "\n\n\n" << cem;
 
-    bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
-    std::cout << "\n isenab " << isenab;
-    bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
-    std::cout << "\n isenab now " << sen;
+		bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
+		std::cout << "\n isenab " << isenab;
+		bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+		std::cout << "\n isenab now " << sen;
 
-    float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
-    std::cout << "\n" << rete << "\n ";
+		float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
+		std::cout << "\n" << rete << "\n ";
 
 
 
-    if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
-        std::cerr << "Gyroscope failed to enable!" << std::endl;
-        return 1;
-    }
+		if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
+			std::cerr << "Gyroscope failed to enable!" << std::endl;
+			return 1;
+		}
+	}
+
 
     //Calibration();
 	UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace

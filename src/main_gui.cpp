@@ -167,6 +167,8 @@ int mainRender(int, char**)
                     runCal = std::thread(Calibration);
                 }
             }
+            ImGui::SameLine();
+            ImGui::Text("no calibration (static text)"); //TODO
 
             if (ImGui::Button("Controller"))
                 ImGui::OpenPopup("Controller_Select");
