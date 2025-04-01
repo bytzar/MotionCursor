@@ -5,11 +5,13 @@
 #include <cmath>
 #include <Windows.h>
 #include <numeric>
+#include "main_gui.h"
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 //TODO setting: Enable clicking even when motion activation is off
 int main()
 {
+    mainRender(NULL, nullptr);
     if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
     {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;

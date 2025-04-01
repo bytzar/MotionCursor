@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)  # or newer; 4.0 is invalid, latest CMake is 3.x
+cmake_minimum_required(VERSION 4.0)
 project(MotionCursor)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -18,8 +18,34 @@ if(WIN32)
     set(RESOURCES assets/MotionCursor.rc)
 endif()
 
+############################################################
+# Set the path to ImGui
+set(IMGUI_PATH ${CMAKE_SOURCE_DIR}/dependencies/imgui)
+
+# Include ImGui headers
+include_directories(${IMGUI_PATH})
+
+# Add ImGui source files
+file(GLOB IMGUI_SOURCES
+    ${IMGUI_PATH}/imgui.cpp
+    ${IMGUI_PATH}/imgui_demo.cpp
+    ${IMGUI_PATH}/imgui_draw.cpp
+    ${IMGUI_PATH}/imgui_tables.cpp
+    ${IMGUI_PATH}/imgui_widgets.cpp
+    ${IMGUI_PATH}/backends/imgui_impl_sdl3.cpp
+    ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer3.cpp
+)
+
+# Include the backend headers
+include_directories(${IMGUI_PATH}/backends)
+
+# Combine your source files with ImGui sources
+set(ALL_SOURCES ${SOURCES} ${IMGUI_SOURCES} ${RESOURCES})
+
 # Create executable
-add_executable(MotionCursor ${SOURCES} ${RESOURCES})
+add_executable(MotionCursor ${SOURCES} ${IMGUI_SOURCES} ${RESOURCES})
+
+add_compile_definitions(IMGUI_ENABLE_DOCKING)
 
 # Link SDL3 target (exported by SDL's CMake)
 target_link_libraries(MotionCursor PRIVATE SDL3::SDL3)
@@ -30,5 +56,3 @@ add_custom_command(TARGET MotionCursor POST_BUILD
         "$<TARGET_FILE:SDL3::SDL3>"
         "$<TARGET_FILE_DIR:MotionCursor>"
 )
-
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MotionCursor)
