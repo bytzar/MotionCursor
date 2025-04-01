@@ -18,6 +18,7 @@
 #include <SDL3/SDL.h>
 #include "main_gui.h"
 
+
 #ifdef __EMSCRIPTEN__
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
@@ -35,7 +36,7 @@ int mainRender(int, char**)
 
     // Create window with SDL_Renderer graphics context
     Uint32 window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL3+SDL_Renderer example", 1280, 720, window_flags);
+    SDL_Window* window = SDL_CreateWindow("MotionCursor GUI", 1440, 810, window_flags);
     if (window == nullptr)
     {
         printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
@@ -87,7 +88,6 @@ int mainRender(int, char**)
 
     // Our state
     bool show_demo_window = true;
-    bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -98,6 +98,7 @@ int mainRender(int, char**)
     io.IniFilename = nullptr;
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
+    static float f = 1.5f;
     while (!done)
 #endif
     {
@@ -129,6 +130,8 @@ int mainRender(int, char**)
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport();
+        
+        ImGui::GetIO().FontGlobalScale = f;  // Adjust scale factor as needed TODO MAKE ADJUSTABLE
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
@@ -136,34 +139,35 @@ int mainRender(int, char**)
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
-            static float f = 0.0f;
             static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Begin("Settings");                          // Create a window called "Settings" and append into it.
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
+            if (ImGui::Button("Reset"))
+                f = 1.5f;
             ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+            ImGui::SliderFloat("font size", &f, 1.0f, 5.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
+            static int selected_fish = -1;
+            const char* names[] = { "Bream", "Haddock", "Mackerel", "Pollock", "Tilefish" };
+            static bool toggles[] = { true, false, false, false, false };
 
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
+            // Simple selection popup (if you want to show the current selection inside the Button itself,
+            // you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
+            if (ImGui::Button("Select.."))
+                ImGui::OpenPopup("my_select_popup");
+            ImGui::SameLine();
+            ImGui::TextUnformatted(selected_fish == -1 ? "<None>" : names[selected_fish]);
+            if (ImGui::BeginPopup("my_select_popup"))
+            {
+                ImGui::SeparatorText("Aquarium");
+                for (int i = 0; i < IM_ARRAYSIZE(names); i++)
+                    if (ImGui::Selectable(names[i]))
+                        selected_fish = i;
+                ImGui::EndPopup();
+            }
+
             ImGui::End();
         }
 

@@ -10,17 +10,12 @@
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 //TODO setting: Enable clicking even when motion activation is off
-
-void bahn()
-{
-    mainRender(NULL, nullptr);
-}
+int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 int main()
 {
-    //std::thread guirenderer(bahn);
     std::thread guirenderer(mainRender, NULL, nullptr);
-    //
     if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
     {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
@@ -65,9 +60,6 @@ int main()
         std::cerr << "Gyroscope failed to enable!" << std::endl;
         return 1;
     }
-
-    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 
     float drift[2] = { 0.0f, 0.0f };
