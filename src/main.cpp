@@ -6,12 +6,21 @@
 #include <Windows.h>
 #include <numeric>
 #include "main_gui.h"
+#include <thread>
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 //TODO setting: Enable clicking even when motion activation is off
-int main()
+
+void bahn()
 {
     mainRender(NULL, nullptr);
+}
+
+int main()
+{
+    //std::thread guirenderer(bahn);
+    std::thread guirenderer(mainRender, NULL, nullptr);
+    //
     if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
     {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
@@ -32,7 +41,7 @@ int main()
     const char* name = SDL_GetGamepadNameForID(*gem);
     std::cout << *gem << "\n " << name;
 
-    SDL_Gamepad* moruk = SDL_OpenGamepad(1);
+    SDL_Gamepad* moruk = SDL_OpenGamepad(2);
     bool tf = SDL_GamepadConnected(moruk);
 
     std::cout << tf << " " << moruk;
