@@ -23,6 +23,9 @@
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
 
+int activeConId = 0;
+std::thread runCal;
+std::thread runUpdateCon;
 // Main code
 int mainRender(int, char**)
 {
@@ -98,7 +101,7 @@ int mainRender(int, char**)
     io.IniFilename = nullptr;
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
-    static float f = 1.5f;
+    static float fontSize = 1.5f;
     while (!done)
 #endif
     {
@@ -131,7 +134,7 @@ int mainRender(int, char**)
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport();
         
-        ImGui::GetIO().FontGlobalScale = f;  // Adjust scale factor as needed TODO MAKE ADJUSTABLE
+        ImGui::GetIO().FontGlobalScale = fontSize;  // Adjust scale factor as needed TODO MAKE ADJUSTABLE
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
@@ -144,30 +147,54 @@ int mainRender(int, char**)
             ImGui::Begin("Settings");                          // Create a window called "Settings" and append into it.
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 
+
+            ImGui::Text("font size");
+            ImGui::SameLine();
             if (ImGui::Button("Reset"))
-                f = 1.5f;
+                fontSize = 1.5f;
             ImGui::SameLine();
-            ImGui::SliderFloat("font size", &f, 1.0f, 5.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-            static int selected_fish = -1;
-            const char* names[] = { "Bream", "Haddock", "Mackerel", "Pollock", "Tilefish" };
-            static bool toggles[] = { true, false, false, false, false };
-
-            // Simple selection popup (if you want to show the current selection inside the Button itself,
-            // you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
-            if (ImGui::Button("Select.."))
-                ImGui::OpenPopup("my_select_popup");
-            ImGui::SameLine();
-            ImGui::TextUnformatted(selected_fish == -1 ? "<None>" : names[selected_fish]);
-            if (ImGui::BeginPopup("my_select_popup"))
+            ImGui::SliderFloat(" ", &fontSize, 1.0f, 5.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            
+            std::vector<const char*> controllersX = *controllersptr;
+            
+            if (ImGui::Button("Calibrate"))
             {
-                ImGui::SeparatorText("Aquarium");
-                for (int i = 0; i < IM_ARRAYSIZE(names); i++)
-                    if (ImGui::Selectable(names[i]))
-                        selected_fish = i;
-                ImGui::EndPopup();
+                if (!runningCal)
+                {
+                    if (runCal.joinable()) {
+                        runCal.join();  // Make sure old thread is done
+                    }
+                    runCal = std::thread(Calibration);
+                }
             }
 
+            if (ImGui::Button("Controller"))
+                ImGui::OpenPopup("Controller_Select");
+            ImGui::SameLine();
+            ImGui::TextUnformatted(controllersX.empty() ? "<None>" : controllersX[activeConId]);
+            if (ImGui::BeginPopup("Controller_Select"))
+            {
+                ImGui::SeparatorText("Controllers");
+                for (int i = 0; i < controllersX.size(); i++)
+                    if (ImGui::Selectable(controllersX[i]))
+                    {
+                        if (activeConId != i || true) //ganz kurz
+                        {
+                            if (runningCal)
+                            {
+                                runningCal = false; //und update =false damit updateloop nicht rumspackt
+                            }
+                            if (runUpdateCon.joinable()) {
+                                runUpdateCon.join();  // Make sure old thread is done
+                            }
+                            runUpdateCon = std::thread(UpdateCon, i);
+                            //std::thread runUpdateCon(UpdateCon, i); //ob richtig switched ungetestet aber anzunehmen
+                            //runCal = std::thread(UpdateCon, i);
+                        }
+                        activeConId = i;
+                    }
+                ImGui::EndPopup();
+            }
             ImGui::End();
         }
 
