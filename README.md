@@ -25,7 +25,7 @@ Have CMake installed.
 
 - Create a new folder and open a Terminal window in that directory
 - Run `git clone --recursive https://github.com/bytzar/MotionCursor.git`
-- Run `mkdir build` and `cd build`
+- Run `cd MotionCursor`, `mkdir build` and `cd build`
 - Run `cmake -G "Visual Studio 17 2022" ..` (Adjust according to IDE)
 - Open newly created MotionCursor.sln in build
 - You might have to set MotionCurser as Startup Project in the solution explorer
