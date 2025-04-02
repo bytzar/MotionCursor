@@ -24,7 +24,7 @@ Have git installed.
 Have CMake installed.
 
 - Create a new folder and open a Terminal window in that directory
-- Run `git clone --recursive https://github.com/bytzar/MotionCursor.git -b cleanup`
+- Run `git clone --recursive https://github.com/bytzar/MotionCursor.git`
 - Run `mkdir build` and `cd build`
 - Run `cmake -G "Visual Studio 17 2022" ..` (Adjust according to IDE)
 - Open newly created MotionCursor.sln in build
