@@ -11,3 +11,7 @@ void Calibration();
 extern std::vector<const char*> controllers;
 //extern std::atomic<std::vector<const char*>*> controllersptr;
 void UpdateConList();
+extern std::vector<int> conIds;
+
+
+//EXTERN NICHT VERGESSEN aq

@@ -24,6 +24,7 @@ std::atomic<bool> update = true;
 std::thread runUpdateLoop;
  //atomic?
 std::vector<const char*> controllers;
+std::vector<int> conIds;
 
 void Calibration()
 {
@@ -160,7 +161,7 @@ void UpdateLoop()
 
 void UpdateCon(int pActiveConId)
 {
-	activeCon = SDL_OpenGamepad(pActiveConId + 1);
+	activeCon = SDL_OpenGamepad(pActiveConId); //brauche kem nicht einfach id plus 1, problem weil wir nur chars array rüber schicken aber mit reconnect und disconnect ich muss mit einher auch die kem ids schicken array mit zwei datentypen? oder... ne einfach noch ein array aber aus ints und einfach die kem werte in der richtigen reihenfolge. ungenutzte kems werden sowieso von sdl einfach geskiptt ja ok ez muss aber global lol so schlecht konvention
 }
 
 void UpdateConList()
@@ -181,25 +182,25 @@ void UpdateConList()
 	SDL_JoystickID* gem = SDL_GetGamepads(&countControllers);
 
 
+
+
+	controllers.resize(countControllers);
+	conIds.resize(countControllers);
+
 	if (countControllers == 0)
 	{
 		std::cout << "no Sdl controllers connected.";
 		return;
 	}
 
-	controllers.resize(countControllers);
-
 	SDL_JoystickID kem;
 	for (int i = 0; i < countControllers; i++)
 	{
 		SDL_Gamepad* game = SDL_OpenGamepad(gem[i]);
-		kem = SDL_GetGamepadID(game);	
+		kem = SDL_GetGamepadID(game);
+		conIds[i] = kem;
 		controllers[i] = SDL_GetGamepadNameForID(kem);
 	}
-
-	
-
-	
 
 	if (countControllers > 0)
 	{
@@ -207,7 +208,7 @@ void UpdateConList()
 		//std::cout << *gem << "\n " << name;
 
 		//activeCon = SDL_OpenGamepad(1); //provisorisch ne doch auto select den ersten beim ersten mal falls oh... falls vorhanden
-		UpdateCon(kem - 1);
+		UpdateCon(conIds[0]);
 
 		//bool tf = SDL_GamepadConnected(activeCon);
 
@@ -237,75 +238,10 @@ void UpdateConList()
 
 int main() //soon to be int init()
 {
-	
- 
-    if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
-    {
-        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    std::cout << "hi\n";
-
-    int countControllers;
-    SDL_JoystickID* gem = SDL_GetGamepads(&countControllers);
-
-    if (countControllers == 0)
-    {
-        std::cout << "no Sdl controllers connected.";
-        //return 3;
-    }
-
-    controllers.resize(countControllers);
-
-    for (int i = 0; i < countControllers; i++)
-    {
-        controllers[i] = SDL_GetGamepadNameForID(i + 1);
-    }
-
-    std::thread guirenderer(mainRender, NULL, nullptr);
-
-	if (countControllers > 0)
-	{
-		//const char* name = SDL_GetGamepadNameForID(*gem);
-		//std::cout << *gem << "\n " << name;
-
-		//activeCon = SDL_OpenGamepad(1); //provisorisch ne doch auto select den ersten beim ersten mal falls oh... falls vorhanden
-		UpdateCon(0);
-
-		//bool tf = SDL_GamepadConnected(activeCon);
-
-		//std::cout << tf << " " << activeCon;
-    
-		SDL_SensorType type = SDL_SENSOR_GYRO;
-		bool cem = SDL_GamepadHasSensor(activeCon, type); //add gyro joycon support
-		std::cout << "\n\n\n" << cem;
-
-		bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
-		std::cout << "\n isenab " << isenab;
-		bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
-		std::cout << "\n isenab now " << sen;
-
-		float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
-		std::cout << "\n" << rete << "\n ";
-
-
-
-		if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
-			std::cerr << "Gyroscope failed to enable!" << std::endl;
-			return 1;
-		}
-	}
-
-	if (runUpdateLoop.joinable())
-	{
-		runUpdateLoop.join();
-	}
+	UpdateConList();
+	mainRender(NULL, nullptr);
+	//std::thread guirenderer(mainRender, NULL, nullptr);
 	//runUpdateLoop = std::thread(UpdateLoop);
-	while (true)
-	{
-
-	}
     //Calibration();
 	//UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace
 }

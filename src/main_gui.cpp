@@ -174,17 +174,34 @@ int mainRender(int, char**)
             ImGui::SameLine();
             ImGui::Text("no calibration (static text)"); //TODO
 
+            
+            if (ImGui::Button("Refresh"))
+            {
+                if (runUpdateConList.joinable()) {
+                    runUpdateConList.join();
+                }
+                runUpdateConList = std::thread(UpdateConList);
+            }
+            ImGui::SameLine();
             if (ImGui::Button("Controller"))
                 ImGui::OpenPopup("Controller_Select");
             ImGui::SameLine();
-            ImGui::TextUnformatted(controllers.empty() ? "<None>" : controllers[activeConId]);
+            if (controllers.empty())
+            {
+                ImGui::TextUnformatted("<None>");
+                activeConId = 0; //gehört hier nicht hin nur bei con update soll das einmal geändert werden nicht jeden frae wo es keinen con gibt
+            }
+            else
+            {
+                ImGui::TextUnformatted(controllers[activeConId]);
+            }
             if (ImGui::BeginPopup("Controller_Select"))
             {
                 ImGui::SeparatorText("Controllers");
                 for (int i = 0; i < controllers.size(); i++)
                     if (ImGui::Selectable(controllers[i]))
                     {
-                        if (activeConId != i || true) //ganz kurz
+                        if (activeConId != i) //ganz kurz
                         {
                             if (runningCal)
                             {
@@ -193,7 +210,7 @@ int mainRender(int, char**)
                             if (runUpdateCon.joinable()) {
                                 runUpdateCon.join();  // Make sure old thread is done
                             }
-                            runUpdateCon = std::thread(UpdateCon, i);
+                            runUpdateCon = std::thread(UpdateCon, conIds[i]);
                             //std::thread runUpdateCon(UpdateCon, i); //ob richtig switched ungetestet aber anzunehmen
                             //runCal = std::thread(UpdateCon, i);
                         }
@@ -201,14 +218,6 @@ int mainRender(int, char**)
                     }
                 ImGui::EndPopup();
             }
-
-			if (ImGui::Button("UpdateDebug"))
-			{
-				if (runUpdateConList.joinable()) {
-					runUpdateConList.join();  // Make sure old thread is done
-				}
-				runUpdateConList = std::thread(UpdateConList);
-			}
 
             ImGui::End();
         }
