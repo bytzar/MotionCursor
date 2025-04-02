@@ -14,14 +14,16 @@
 
 
 SDL_Gamepad* activeCon;
-std::vector<const char*>* controllersptr;
 
 float avgDriftX;
 float avgDriftY;
 
 std::atomic<bool> runningCal = false;
+std::atomic<bool> update = true;
 
-
+std::thread runUpdateLoop;
+ //atomic?
+std::vector<const char*> controllers;
 
 void Calibration()
 {
@@ -68,7 +70,7 @@ void UpdateLoop()
 	bool wasDown = false;
 
 	//was wenn controller gewechselt wird, tesen könnte einfach klappen muss mit freund weil hab kein anderen vernünftig gyro der nicht joycon weirdness hat joycon hat in sdl ja eigene joycon gyro zeug nervig
-	while (true) //muss immer true sein sonst terminated mainthread einfach und das schlimm!oh aber für interne zwekc könnte gut sein, für graceful shutdown zb müsste ich den loop beenden können -> nur mit variable einfach point blank kill execution ist auch nicht feine art//immer tru? bzw ist intended behaviour nicht dass es immer true ist. man soll ja mitten drinn nicht das ding pausieren können, wenn du das willst mach programm aus ist die idee. soll nicht so ein dummes program sein wo man es erst startet und dann muss man noch knopf drücken um funktionalität zu starten so wenn er nicht wollte hätte er program niht angemacht wenn er nicht mehr weill mach halt aus wa
+	while (update) //muss immer true sein sonst terminated mainthread einfach und das schlimm!oh aber für interne zwekc könnte gut sein, für graceful shutdown zb müsste ich den loop beenden können -> nur mit variable einfach point blank kill execution ist auch nicht feine art//immer tru? bzw ist intended behaviour nicht dass es immer true ist. man soll ja mitten drinn nicht das ding pausieren können, wenn du das willst mach programm aus ist die idee. soll nicht so ein dummes program sein wo man es erst startet und dann muss man noch knopf drücken um funktionalität zu starten so wenn er nicht wollte hätte er program niht angemacht wenn er nicht mehr weill mach halt aus wa
 	{
 		if (activeCon) //CHECKPOINT ok also hab das geschrieben weil ich dachte auf active con mit anderen thread zu schreiben während hier rennt macht proboeme mit deinitialisierung oder so jedenfalls villeicht activecon atomic machen baer das wahre problem war akku ist einfach tod gegangen muss gucken dass das registriert und so eigenlich hat program alles richtig gemacht keine crashes und so weiter (nicht viel getestet) nur muss dieses dropdown aktualisiert werden und active zu <none>
 		{
@@ -161,8 +163,82 @@ void UpdateCon(int pActiveConId)
 	activeCon = SDL_OpenGamepad(pActiveConId + 1);
 }
 
+void UpdateConList()
+{
+	update = false;
+	if (runUpdateLoop.joinable())
+	{
+		runUpdateLoop.join();
+	}
+	std::cout << "\ni am cout";
+	if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
+	{
+		std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+
+	int countControllers;
+	SDL_JoystickID* gem = SDL_GetGamepads(&countControllers);
+
+
+	if (countControllers == 0)
+	{
+		std::cout << "no Sdl controllers connected.";
+		return;
+	}
+
+	controllers.resize(countControllers);
+
+	SDL_JoystickID kem;
+	for (int i = 0; i < countControllers; i++)
+	{
+		SDL_Gamepad* game = SDL_OpenGamepad(gem[i]);
+		kem = SDL_GetGamepadID(game);	
+		controllers[i] = SDL_GetGamepadNameForID(kem);
+	}
+
+	
+
+	
+
+	if (countControllers > 0)
+	{
+		//const char* name = SDL_GetGamepadNameForID(*gem);
+		//std::cout << *gem << "\n " << name;
+
+		//activeCon = SDL_OpenGamepad(1); //provisorisch ne doch auto select den ersten beim ersten mal falls oh... falls vorhanden
+		UpdateCon(kem - 1);
+
+		//bool tf = SDL_GamepadConnected(activeCon);
+
+		//std::cout << tf << " " << activeCon;
+
+		SDL_SensorType type = SDL_SENSOR_GYRO;
+		bool cem = SDL_GamepadHasSensor(activeCon, type); //add gyro joycon support
+		std::cout << "\n\n\n" << cem;
+
+		bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
+		std::cout << "\n isenab " << isenab;
+		bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+		std::cout << "\n isenab now " << sen;
+
+		float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
+		std::cout << "\n" << rete << "\n ";
+
+
+		if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
+			std::cerr << "Gyroscope failed to enable!" << std::endl;
+			return;
+		}
+		update = true;
+		runUpdateLoop = std::thread(UpdateLoop);
+	}
+}
+
 int main() //soon to be int init()
 {
+	
+ 
     if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
     {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
@@ -180,8 +256,7 @@ int main() //soon to be int init()
         //return 3;
     }
 
-    std::vector<const char*> controllers(countControllers);
-    controllersptr = &controllers;
+    controllers.resize(countControllers);
 
     for (int i = 0; i < countControllers; i++)
     {
@@ -222,7 +297,15 @@ int main() //soon to be int init()
 		}
 	}
 
+	if (runUpdateLoop.joinable())
+	{
+		runUpdateLoop.join();
+	}
+	//runUpdateLoop = std::thread(UpdateLoop);
+	while (true)
+	{
 
+	}
     //Calibration();
-	UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace
+	//UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace
 }

@@ -18,6 +18,8 @@
 #include <SDL3/SDL.h>
 #include "main_gui.h"
 
+#include <iostream> //temp
+
 
 #ifdef __EMSCRIPTEN__
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
@@ -26,6 +28,8 @@
 int activeConId = 0;
 std::thread runCal;
 std::thread runUpdateCon;
+std::thread runUpdateConList;
+
 // Main code
 int mainRender(int, char**)
 {
@@ -155,7 +159,7 @@ int mainRender(int, char**)
             ImGui::SameLine();
             ImGui::SliderFloat(" ", &fontSize, 1.0f, 5.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             
-            std::vector<const char*> controllersX = *controllersptr;
+           
             
             if (ImGui::Button("Calibrate"))
             {
@@ -173,12 +177,12 @@ int mainRender(int, char**)
             if (ImGui::Button("Controller"))
                 ImGui::OpenPopup("Controller_Select");
             ImGui::SameLine();
-            ImGui::TextUnformatted(controllersX.empty() ? "<None>" : controllersX[activeConId]);
+            ImGui::TextUnformatted(controllers.empty() ? "<None>" : controllers[activeConId]);
             if (ImGui::BeginPopup("Controller_Select"))
             {
                 ImGui::SeparatorText("Controllers");
-                for (int i = 0; i < controllersX.size(); i++)
-                    if (ImGui::Selectable(controllersX[i]))
+                for (int i = 0; i < controllers.size(); i++)
+                    if (ImGui::Selectable(controllers[i]))
                     {
                         if (activeConId != i || true) //ganz kurz
                         {
@@ -197,6 +201,15 @@ int mainRender(int, char**)
                     }
                 ImGui::EndPopup();
             }
+
+			if (ImGui::Button("UpdateDebug"))
+			{
+				if (runUpdateConList.joinable()) {
+					runUpdateConList.join();  // Make sure old thread is done
+				}
+				runUpdateConList = std::thread(UpdateConList);
+			}
+
             ImGui::End();
         }
 
