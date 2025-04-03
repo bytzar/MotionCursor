@@ -26,6 +26,9 @@ std::thread runUpdateLoop;
 std::vector<const char*> controllers;
 std::vector<int> conIds;
 
+SDL_GamepadButton buttonActivator = SDL_GAMEPAD_BUTTON_MISC1; //default, settings in date ini machen aber gucken ka
+SDL_GamepadButton buttonClick = SDL_GAMEPAD_BUTTON_EAST;
+
 void Calibration()
 {
 	if (!runningCal && activeCon)
@@ -54,6 +57,7 @@ void Calibration()
     avgDriftY = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
 	runningCal = false;
 	}
+	std::cout << "\ncal thread deactive ";
 }
 
 void UpdateLoop()
@@ -76,13 +80,13 @@ void UpdateLoop()
 		if (activeCon) //CHECKPOINT ok also hab das geschrieben weil ich dachte auf active con mit anderen thread zu schreiben während hier rennt macht proboeme mit deinitialisierung oder so jedenfalls villeicht activecon atomic machen baer das wahre problem war akku ist einfach tod gegangen muss gucken dass das registriert und so eigenlich hat program alles richtig gemacht keine crashes und so weiter (nicht viel getestet) nur muss dieses dropdown aktualisiert werden und active zu <none>
 		{
 			SDL_PumpEvents();
-			if (SDL_GetGamepadButton(activeCon, SDL_GAMEPAD_BUTTON_MISC1)) //checks for activation button be pressed
+			if (SDL_GetGamepadButton(activeCon, buttonActivator)) //checks for activation button be pressed
 			{
 				cursorPos.x = screenWidth / 2;
 				cursorPos.y = screenHeight / 2;
 				SetCursorPos(screenWidth / 2, screenHeight / 2);
 				float data[2] = { 0.0f, 0.0f };
-				while (SDL_GetGamepadButton(activeCon, SDL_GAMEPAD_BUTTON_MISC1))
+				while (SDL_GetGamepadButton(activeCon, buttonActivator))
 				{
 					SDL_PumpEvents();
 
@@ -141,13 +145,13 @@ void UpdateLoop()
 					// Move the mouse
 					SetCursorPos(cursorPos.x, cursorPos.y);
 
-					if (SDL_GetGamepadButton(activeCon, SDL_GAMEPAD_BUTTON_EAST) && !wasDown)
+					if (SDL_GetGamepadButton(activeCon, buttonClick) && !wasDown)
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = true;
 					}
-					else if (wasDown && !SDL_GetGamepadButton(activeCon, SDL_GAMEPAD_BUTTON_EAST))
+					else if (wasDown && !SDL_GetGamepadButton(activeCon, buttonClick))
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 						SendInput(1, inputs, sizeof(INPUT));
@@ -157,20 +161,26 @@ void UpdateLoop()
 			}
 		}
 	}
+	std::cout << "\nupdate loop thread deactive ";
 }
 
 void UpdateCon(int pActiveConId)
 {
 	activeCon = SDL_OpenGamepad(pActiveConId); //brauche kem nicht einfach id plus 1, problem weil wir nur chars array rüber schicken aber mit reconnect und disconnect ich muss mit einher auch die kem ids schicken array mit zwei datentypen? oder... ne einfach noch ein array aber aus ints und einfach die kem werte in der richtigen reihenfolge. ungenutzte kems werden sowieso von sdl einfach geskiptt ja ok ez muss aber global lol so schlecht konvention
+	std::cout << "\nupdate con thread deactive ";
 }
 
 void UpdateConList()
 {
+	SDL_CloseGamepad(activeCon);
 	update = false;
 	if (runUpdateLoop.joinable())
 	{
 		runUpdateLoop.join();
 	}
+	SDL_Delay(200); //if refresh has issues 50% of the time WHAT DA FUCK; this line is only needed, now get this, when the conroller id is EVEN! WHY?! been looking for a race condition this wole time this is so stupid wasted my day. why would the evenness of an id matter its so stupid. its probably something else and the evenness is just a sympton 
+
+
 	std::cout << "\ni am cout";
 	if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
 	{
@@ -178,14 +188,12 @@ void UpdateConList()
 		return;
 	}
 
+
 	int countControllers;
 	SDL_JoystickID* gem = SDL_GetGamepads(&countControllers);
 
-
-
-
-	controllers.resize(countControllers);
-	conIds.resize(countControllers);
+	controllers.resize(countControllers + 1);
+	conIds.resize(countControllers + 1);
 
 	if (countControllers == 0)
 	{
@@ -194,7 +202,7 @@ void UpdateConList()
 	}
 
 	SDL_JoystickID kem;
-	for (int i = 0; i < countControllers; i++)
+	for (int i = 0; i < countControllers + 1; i++)
 	{
 		SDL_Gamepad* game = SDL_OpenGamepad(gem[i]);
 		kem = SDL_GetGamepadID(game);
@@ -202,13 +210,19 @@ void UpdateConList()
 		controllers[i] = SDL_GetGamepadNameForID(kem);
 	}
 
+
 	if (countControllers > 0)
 	{
 		//const char* name = SDL_GetGamepadNameForID(*gem);
 		//std::cout << *gem << "\n " << name;
 
 		//activeCon = SDL_OpenGamepad(1); //provisorisch ne doch auto select den ersten beim ersten mal falls oh... falls vorhanden
-		UpdateCon(conIds[0]);
+		//if (activeCon != SDL_OpenGamepad(conIds[0])) //gibt n racy cond aber ist doch complett im thread self contained oder nicht AAAAAAAAAA
+		
+			UpdateCon(conIds[0]);
+			std::cout << "\nupdated mit " << conIds[0];
+		
+		
 
 		//bool tf = SDL_GamepadConnected(activeCon);
 
@@ -220,8 +234,12 @@ void UpdateConList()
 
 		bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
 		std::cout << "\n isenab " << isenab;
-		bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
-		std::cout << "\n isenab now " << sen;
+		if (!isenab)
+		{
+			bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+			std::cout << "\n isenab now " << sen;
+		}
+		
 
 		float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
 		std::cout << "\n" << rete << "\n ";
@@ -229,11 +247,14 @@ void UpdateConList()
 
 		if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
 			std::cerr << "Gyroscope failed to enable!" << std::endl;
-			return;
+			//return;
 		}
 		update = true;
 		runUpdateLoop = std::thread(UpdateLoop);
+		std::cout << "\nupdate loop thread aktiv " << runUpdateLoop.get_id();
+		std::cout << "\nupdate list thread deactive ";
 	}
+	first = true;
 }
 
 int main() //soon to be int init()
@@ -244,4 +265,9 @@ int main() //soon to be int init()
 	//runUpdateLoop = std::thread(UpdateLoop);
     //Calibration();
 	//UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace
+}
+
+void DEBUG()
+{
+
 }

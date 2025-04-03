@@ -24,11 +24,16 @@
 #ifdef __EMSCRIPTEN__
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
+#include <imgui_internal.h>
 
 int activeConId = 0;
 std::thread runCal;
 std::thread runUpdateCon;
 std::thread runUpdateConList;
+
+bool virginCall = true;
+bool first = true;
+ImGuiID dockspace_id;
 
 // Main code
 int mainRender(int, char**)
@@ -42,7 +47,7 @@ int mainRender(int, char**)
     }
 
     // Create window with SDL_Renderer graphics context
-    Uint32 window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
+    Uint32 window_flags = SDL_WINDOW_RESIZABLE;
     SDL_Window* window = SDL_CreateWindow("MotionCursor GUI", 1440, 810, window_flags);
     if (window == nullptr)
     {
@@ -67,6 +72,8 @@ int mainRender(int, char**)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    io.ConfigFlags |= ImGuiWindowFlags_NoTitleBar;
+    io.ConfigFlags |= ImGuiWindowFlags_NoCollapse;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -105,7 +112,7 @@ int mainRender(int, char**)
     io.IniFilename = nullptr;
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
-    static float fontSize = 1.5f;
+    static float fontSize = 2.0f;
     while (!done)
 #endif
     {
@@ -132,11 +139,37 @@ int mainRender(int, char**)
             continue;
         }
 
+
+
+
         // Start the Dear ImGui frame
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        ImGui::DockSpaceOverViewport();
+
+
+        if (virginCall)
+        {
+            dockspace_id = ImGui::GetID("MyDockSpace");
+            if (ImGui::DockBuilderGetNode(dockspace_id) == NULL)
+            {
+                ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
+                ImGui::DockBuilderAddNode(dockspace_id, 0); // Add empty node
+                ImGui::DockBuilderSetNodeSize(dockspace_id, ImVec2(0.45f, 0.55f));
+
+                ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
+                //ImGuiID dock_id_prop = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, NULL, &dock_main_id);
+                //ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.20f, NULL, &dock_main_id);
+
+                ImGui::DockBuilderDockWindow("Settings", dock_main_id);
+                ImGui::DockBuilderFinish(dockspace_id);
+            }
+            //ImGui::DockSpace(dockspace_id);
+            virginCall = false;
+        }
+
+        ImGui::DockSpaceOverViewport(dockspace_id);
+        
         
         ImGui::GetIO().FontGlobalScale = fontSize;  // Adjust scale factor as needed TODO MAKE ADJUSTABLE
 
@@ -144,18 +177,26 @@ int mainRender(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
+        //ImGui::DockBuilderGetNode(your_id) == 0;
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
-            static int counter = 0;
+            ImGuiWindowFlags window_flags = 0;
+            window_flags |= ImGuiWindowFlags_NoTitleBar;
+            window_flags |= ImGuiWindowFlags_NoCollapse;
+            window_flags |= ImGuiConfigFlags_ViewportsEnable;
+            window_flags |= ImGuiWindowFlags_NoResize;
+            window_flags |= ImGuiWindowFlags_NoMove;
+            
 
-            ImGui::Begin("Settings");                          // Create a window called "Settings" and append into it.
+
+            ImGui::Begin("Settings", NULL, window_flags);                          // Create a window called "Settings" and append into it.
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 
 
             ImGui::Text("font size");
             ImGui::SameLine();
             if (ImGui::Button("Reset"))
-                fontSize = 1.5f;
+                fontSize = 2.0f;
             ImGui::SameLine();
             ImGui::SliderFloat(" ", &fontSize, 1.0f, 5.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             
@@ -169,6 +210,7 @@ int mainRender(int, char**)
                         runCal.join();  // Make sure old thread is done
                     }
                     runCal = std::thread(Calibration);
+                    std::cout << "\ncal thread aktiv " << runCal.get_id();
                 }
             }
             ImGui::SameLine();
@@ -177,10 +219,15 @@ int mainRender(int, char**)
             
             if (ImGui::Button("Refresh"))
             {
-                if (runUpdateConList.joinable()) {
-                    runUpdateConList.join();
+                if (first)
+                {
+                    first = false;
+                    if (runUpdateConList.joinable()) {
+                        runUpdateConList.join();
+                    }
+                    runUpdateConList = std::thread(UpdateConList);
+                    std::cout << "\nupdate list thread aktiv " << runUpdateConList.get_id();
                 }
-                runUpdateConList = std::thread(UpdateConList);
             }
             ImGui::SameLine();
             if (ImGui::Button("Controller"))
@@ -205,18 +252,27 @@ int mainRender(int, char**)
                         {
                             if (runningCal)
                             {
-                                runningCal = false; //und update =false damit updateloop nicht rumspackt
+                                runningCal = false; //muss noch auf thread warten machen ! und update =false damit updateloop nicht rumspackt 
                             }
                             if (runUpdateCon.joinable()) {
                                 runUpdateCon.join();  // Make sure old thread is done
                             }
+                            if (runUpdateConList.joinable()) {
+                                runUpdateConList.join();
+                            }
                             runUpdateCon = std::thread(UpdateCon, conIds[i]);
+                            std::cout << "\nupdate con thread aktiv " << runUpdateCon.get_id();
                             //std::thread runUpdateCon(UpdateCon, i); //ob richtig switched ungetestet aber anzunehmen
                             //runCal = std::thread(UpdateCon, i);
                         }
                         activeConId = i;
                     }
                 ImGui::EndPopup();
+            }
+
+            if (ImGui::Button("DEBUG"))
+            {
+                DEBUG();
             }
 
             ImGui::End();
