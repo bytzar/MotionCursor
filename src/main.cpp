@@ -6,7 +6,7 @@
 #include <Windows.h>
 #include <numeric>
 #include "main_gui.h"
-#define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
+
 
 //TODO setting: Enable clicking even when motion activation is off
 //update only every 1s/datarate
@@ -37,6 +37,9 @@ bool listening = false;
 bool listeningClick = false;
 bool triggerAct = false;
 bool triggerClick = false;
+
+std::vector<int> macrosX;
+std::vector<int> macrosY;
 
 void Calibration()
 {
@@ -273,6 +276,8 @@ void UpdateConList()
 
 int main() //soon to be int init()
 {
+	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 	//UpdateConList();
 	mainRender(NULL, nullptr);
 	//std::thread guirenderer(mainRender, NULL, nullptr);
@@ -281,9 +286,81 @@ int main() //soon to be int init()
 	//UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace
 }
 
+/*
+void RecordMacro()
+{
+	MSG msg;
+	std::cout << "Waiting for next mouse click...\n";
+
+	// Wait for the next mouse event
+	while (GetMessage(&msg, NULL, WM_LBUTTONDOWN, WM_RBUTTONDOWN))
+	{
+		if (msg.message == WM_LBUTTONDOWN)
+		{
+			POINT cursorpos;
+			GetCursorPos(&cursorpos);
+			macrosX.push_back(cursorpos.x);
+			macrosY.push_back(cursorpos.y);
+			break;
+		}
+	}
+}*/
+
+HHOOK mouseHook = NULL;  // Hook handle
+
+LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode >= 0 && (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN)) {
+		MSLLHOOKSTRUCT* mouseInfo = (MSLLHOOKSTRUCT*)lParam;
+		std::cout << "Mouse clicked at: (" << mouseInfo->pt.x << ", " << mouseInfo->pt.y << ")\n";
+
+		macrosX.push_back(mouseInfo->pt.x);
+		macrosY.push_back(mouseInfo->pt.y);
+
+		// Stop listening after the first click
+		PostQuitMessage(0);
+	}
+	return CallNextHookEx(mouseHook, nCode, wParam, lParam);
+}
+
+void RecordMacro() {
+	std::cout << "Waiting for next mouse click...\n";
+
+	// Install the hook
+	mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseHookProc, NULL, 0);
+	if (!mouseHook) {
+		std::cerr << "Failed to install mouse hook!\n";
+		return;
+	}
+
+	// Wait for a single click
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	// Uninstall the hook after the first click
+	UnhookWindowsHookEx(mouseHook);
+	mouseHook = NULL;
+}
+
+void ReplayMacro(int pPosX, int pPosY)
+{
+	if (pPosX > 0 && pPosY > 0)
+	{
+		INPUT inputs[1] = {};
+		SetCursorPos(pPosX, pPosY);
+		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+		SendInput(1, inputs, sizeof(INPUT));
+		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+		SendInput(1, inputs, sizeof(INPUT));
+	}
+}
+
 void DEBUG()
 {
-	
+	RecordMacro();
+	//ReplayMacro(macrosX[0], macrosY[0]);
 	std::cout << "removed all bugs";
 }
 
@@ -388,5 +465,4 @@ void RemapClick()
 	//update loop in then cases starten
 	std::cout << "Timeout reached or input detected.\n";
 	listeningClick = false;
-
 }

@@ -168,8 +168,9 @@ int mainRender(int, char**)
                 ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
                 //ImGuiID dock_id_prop = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, NULL, &dock_main_id);
                 //ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.20f, NULL, &dock_main_id);
-
+                ImGui::DockBuilderDockWindow("macros", dock_main_id);
                 ImGui::DockBuilderDockWindow("Settings", dock_main_id);
+
                 ImGui::DockBuilderFinish(dockspace_id);
             }
             //ImGui::DockSpace(dockspace_id);
@@ -187,6 +188,43 @@ int mainRender(int, char**)
 
         //ImGui::DockBuilderGetNode(your_id) == 0;
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        {
+            ImGuiWindowFlags window_flags = 0;
+            window_flags |= ImGuiWindowFlags_NoTitleBar;
+            window_flags |= ImGuiWindowFlags_NoCollapse;
+            window_flags |= ImGuiConfigFlags_ViewportsEnable;
+            window_flags |= ImGuiWindowFlags_NoResize;
+            window_flags |= ImGuiWindowFlags_NoMove;
+
+
+
+            ImGui::Begin("macros", NULL, window_flags);                          // Create a window called "Settings" and append into it.
+
+            for (int i = 0; i < macrosX.size(); i++)
+            {
+                std::string str = "x: ";
+                str += std::to_string(macrosX[i]);
+                str += " ";
+                char const* pchar = str.c_str();
+                ImGui::TextUnformatted(pchar);
+                ImGui::SameLine();
+                str = "y: ";
+                str += std::to_string(macrosY[i]);
+                pchar = str.c_str();
+                ImGui::TextUnformatted(pchar);
+                ImGui::SameLine();
+                str = "replay macro ";
+                str += std::to_string(i);
+                pchar = str.c_str();
+                if (ImGui::Button(pchar))
+                {
+                    ReplayMacro(macrosX[i], macrosY[i]); //main thread weil grad kein bock
+                }
+            }
+
+
+            ImGui::End();
+        }
         {
             ImGuiWindowFlags window_flags = 0;
             window_flags |= ImGuiWindowFlags_NoTitleBar;
@@ -347,7 +385,9 @@ int mainRender(int, char**)
 
             ImGui::End();
         }
-
+        ////////////////////////////////////
+        
+        /////////////////////////////////////////////
         // Rendering
         ImGui::Render();
         //SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
@@ -356,6 +396,8 @@ int mainRender(int, char**)
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
     }
+
+
 #ifdef __EMSCRIPTEN__
     EMSCRIPTEN_MAINLOOP_END;
 #endif

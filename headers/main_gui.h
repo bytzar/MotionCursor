@@ -3,7 +3,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
-
+#define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 int mainRender(int, char**);
 void UpdateCon(int pActiveConId);
@@ -28,4 +28,8 @@ extern SDL_GamepadAxis axisClick;
 extern bool triggerAct;
 extern bool triggerClick;
 
+void ReplayMacro(int pPosX, int pPosY);
+
+extern std::vector<int> macrosX;
+extern std::vector<int> macrosY;
 //EXTERN NICHT VERGESSEN aq
