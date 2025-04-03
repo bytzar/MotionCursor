@@ -21,4 +21,11 @@ void RemapClick();
 extern bool listening;
 extern bool listeningClick;
 
+extern SDL_GamepadButton buttonActivator;
+extern SDL_GamepadButton buttonClick;
+extern SDL_GamepadAxis axisActivator;
+extern SDL_GamepadAxis axisClick;
+extern bool triggerAct;
+extern bool triggerClick;
+
 //EXTERN NICHT VERGESSEN aq

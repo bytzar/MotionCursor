@@ -109,7 +109,7 @@ int mainRender(int, char**)
     //IM_ASSERT(font != nullptr);
 
     // Our state
-    bool show_demo_window = true;
+    bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -299,7 +299,15 @@ int mainRender(int, char**)
             }
             else
             {
-                ImGui::TextUnformatted("misc1");
+                if (triggerAct)
+                {
+                    ImGui::TextUnformatted((axisActivator == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger");
+                }
+                else
+                {
+                    const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
+                    ImGui::TextUnformatted(buttonName ? buttonName : "Unknown");
+                }
             }
 
 
@@ -318,7 +326,15 @@ int mainRender(int, char**)
             }
             else
             {
-                ImGui::TextUnformatted("misc1");
+                if (triggerClick)
+                {
+                    ImGui::TextUnformatted((axisClick == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger");
+                }
+                else
+                {
+                    const char* buttonName = SDL_GetGamepadStringForButton(buttonClick);
+                    ImGui::TextUnformatted(buttonName ? buttonName : "Unknown");
+                }
             }
 
 
