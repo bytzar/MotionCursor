@@ -4,6 +4,7 @@
 #include <thread>
 #include <atomic>
 
+
 int mainRender(int, char**);
 void UpdateCon(int pActiveConId);
 extern std::atomic<bool> runningCal;
@@ -14,6 +15,10 @@ void UpdateConList();
 extern std::vector<int> conIds;
 void DEBUG();
 extern bool first;
-
+extern float sensitivity;
+void RemapActivator();
+void RemapClick();
+extern bool listening;
+extern bool listeningClick;
 
 //EXTERN NICHT VERGESSEN aq

@@ -18,6 +18,7 @@ SDL_Gamepad* activeCon;
 float avgDriftX;
 float avgDriftY;
 
+
 std::atomic<bool> runningCal = false;
 std::atomic<bool> update = true;
 
@@ -28,6 +29,14 @@ std::vector<int> conIds;
 
 SDL_GamepadButton buttonActivator = SDL_GAMEPAD_BUTTON_MISC1; //default, settings in date ini machen aber gucken ka
 SDL_GamepadButton buttonClick = SDL_GAMEPAD_BUTTON_EAST;
+
+SDL_GamepadAxis axisActivator;
+SDL_GamepadAxis axisClick;
+
+bool listening = false;
+bool listeningClick = false;
+bool triggerAct = false;
+bool triggerClick = false;
 
 void Calibration()
 {
@@ -80,13 +89,13 @@ void UpdateLoop()
 		if (activeCon) //CHECKPOINT ok also hab das geschrieben weil ich dachte auf active con mit anderen thread zu schreiben während hier rennt macht proboeme mit deinitialisierung oder so jedenfalls villeicht activecon atomic machen baer das wahre problem war akku ist einfach tod gegangen muss gucken dass das registriert und so eigenlich hat program alles richtig gemacht keine crashes und so weiter (nicht viel getestet) nur muss dieses dropdown aktualisiert werden und active zu <none>
 		{
 			SDL_PumpEvents();
-			if (SDL_GetGamepadButton(activeCon, buttonActivator)) //checks for activation button be pressed
+			if ((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) //checks for activation button be pressed
 			{
 				cursorPos.x = screenWidth / 2;
 				cursorPos.y = screenHeight / 2;
 				SetCursorPos(screenWidth / 2, screenHeight / 2);
 				float data[2] = { 0.0f, 0.0f };
-				while (SDL_GetGamepadButton(activeCon, buttonActivator))
+				while ((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000))
 				{
 					SDL_PumpEvents();
 
@@ -113,8 +122,8 @@ void UpdateLoop()
 					int nuhull = 1;
 					if (data[0] < 0) { nuhull = -1; }
 
-					float MaxGyroForComforty = 125.0f;
-					float MaxGyroForComfortx = 125.0f;
+					float MaxGyroForComforty = 125.0f / sensitivity;
+					float MaxGyroForComfortx = 125.0f / sensitivity;
 
 					if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
 					if (data[1] < -MaxGyroForComforty) { data[1] = -MaxGyroForComforty; }
@@ -145,13 +154,13 @@ void UpdateLoop()
 					// Move the mouse
 					SetCursorPos(cursorPos.x, cursorPos.y);
 
-					if (SDL_GetGamepadButton(activeCon, buttonClick) && !wasDown)
+					if (((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown)
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = true;
 					}
-					else if (wasDown && !SDL_GetGamepadButton(activeCon, buttonClick))
+					else if (wasDown && ((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick)))
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 						SendInput(1, inputs, sizeof(INPUT));
@@ -172,7 +181,10 @@ void UpdateCon(int pActiveConId)
 
 void UpdateConList()
 {
-	SDL_CloseGamepad(activeCon);
+	if (activeCon)
+	{
+		SDL_CloseGamepad(activeCon);
+	}
 	update = false;
 	if (runUpdateLoop.joinable())
 	{
@@ -185,6 +197,7 @@ void UpdateConList()
 	if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
 	{
 		std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
+		first = true;
 		return;
 	}
 
@@ -192,17 +205,18 @@ void UpdateConList()
 	int countControllers;
 	SDL_JoystickID* gem = SDL_GetGamepads(&countControllers);
 
-	controllers.resize(countControllers + 1);
-	conIds.resize(countControllers + 1);
+	controllers.resize(countControllers);
+	conIds.resize(countControllers);
 
 	if (countControllers == 0)
 	{
 		std::cout << "no Sdl controllers connected.";
+		first = true;
 		return;
 	}
 
 	SDL_JoystickID kem;
-	for (int i = 0; i < countControllers + 1; i++)
+	for (int i = 0; i < countControllers; i++)
 	{
 		SDL_Gamepad* game = SDL_OpenGamepad(gem[i]);
 		kem = SDL_GetGamepadID(game);
@@ -259,7 +273,7 @@ void UpdateConList()
 
 int main() //soon to be int init()
 {
-	UpdateConList();
+	//UpdateConList();
 	mainRender(NULL, nullptr);
 	//std::thread guirenderer(mainRender, NULL, nullptr);
 	//runUpdateLoop = std::thread(UpdateLoop);
@@ -269,5 +283,110 @@ int main() //soon to be int init()
 
 void DEBUG()
 {
+	
+	std::cout << "removed all bugs";
+}
+
+void RemapActivator()
+{
+	/*
+		update = false;
+	if (runUpdateLoop.joinable())
+	{
+		runUpdateLoop.join();
+	}		SDL_PumpEvents();	update = true;
+	runUpdateLoop = std::thread(UpdateLoop); funktioniert nicht ohne klapps auch juckie
+	*/
+
+	
+
+	SDL_Event event;
+	const int timeout_ms = 7000; // 7 seconds
+	Uint64 start_time = SDL_GetTicks();
+	listening = true;
+
+	std::cout << "Waiting for button or trigger input... (7 seconds timeout)\n";
+
+	while (SDL_GetTicks() - start_time < timeout_ms) {
+
+		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
+		if (SDL_WaitEventTimeout(&event, remaining_time)) {
+
+			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+				buttonActivator = static_cast<SDL_GamepadButton>(event.gbutton.button);
+				std::cout << "Button pressed: " << buttonActivator << " (enum value)\n";
+				const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
+				triggerAct = false;
+				std::cout << "Button pressed: " << (buttonName ? buttonName : "Unknown") << "\n";
+				break;
+			}
+			else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+				if (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || event.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
+					if (event.gaxis.value > 16000) {
+						axisActivator = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
+						triggerAct = true;
+						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger";
+						std::cout << triggerName << " pressed.\n";
+						break;
+					}
+				}
+			}
+		}
+	}
+	//update loop in then cases starten
+	std::cout << "Timeout reached or input detected.\n";
+	listening = false;
+
+}
+
+void RemapClick()
+{
+	/*
+		update = false;
+	if (runUpdateLoop.joinable())
+	{
+		runUpdateLoop.join();
+	}		SDL_PumpEvents();	update = true;
+	runUpdateLoop = std::thread(UpdateLoop); funktioniert nicht ohne klapps auch juckie
+	*/
+
+
+
+	SDL_Event event;
+	const int timeout_ms = 7000; // 7 seconds
+	Uint64 start_time = SDL_GetTicks();
+	listeningClick = true;
+
+	std::cout << "Waiting for button or trigger input... (7 seconds timeout)\n";
+
+	while (SDL_GetTicks() - start_time < timeout_ms) {
+
+		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
+		if (SDL_WaitEventTimeout(&event, remaining_time)) {
+
+			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+				buttonClick = static_cast<SDL_GamepadButton>(event.gbutton.button);
+				std::cout << "Button pressed: " << buttonActivator << " (enum value)\n";
+				const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
+				std::cout << "Button pressed: " << (buttonName ? buttonName : "Unknown") << "\n";
+				triggerClick = false;
+				break;
+			}
+			else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+				if (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || event.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
+					if (event.gaxis.value > 16000) {
+						axisClick = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
+						triggerClick = true;
+						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger";
+						std::cout << triggerName << " pressed.\n";
+						break;
+					}
+				}
+			}
+		}
+	}
+	//update loop in then cases starten
+	std::cout << "Timeout reached or input detected.\n";
+	listeningClick = false;
 
 }

@@ -30,14 +30,22 @@ int activeConId = 0;
 std::thread runCal;
 std::thread runUpdateCon;
 std::thread runUpdateConList;
+std::thread runRemapAct;
+std::thread runRemapClick;
 
 bool virginCall = true;
 bool first = true;
 ImGuiID dockspace_id;
+float sensitivity = 1;
 
 // Main code
 int mainRender(int, char**)
 {
+    if (runUpdateConList.joinable()) {
+        runUpdateConList.join();
+    }
+    runUpdateConList = std::thread(UpdateConList);
+
     // Setup SDL
     // [If using SDL_MAIN_USE_CALLBACKS: all code below until the main loop starts would likely be your SDL_AppInit() function]
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
@@ -269,6 +277,52 @@ int mainRender(int, char**)
                     }
                 ImGui::EndPopup();
             }
+
+            ImGui::Text("sensitivity multipliyer");
+            ImGui::SameLine();
+            if (ImGui::Button("Default"))
+                sensitivity = 1.0f;
+            ImGui::SameLine();
+            ImGui::SliderFloat("  ", &sensitivity, 0.001f, 10.0f);
+
+            if (ImGui::Button("remap activation button") && !listening && !listeningClick)
+            {
+                if (runRemapAct.joinable()) {
+                    runRemapAct.join();  // Make sure old thread is done
+                }
+                runRemapAct = std::thread(RemapActivator);
+            }
+            ImGui::SameLine();
+            if (listening)
+            {
+                ImGui::TextUnformatted("<listening>");
+            }
+            else
+            {
+                ImGui::TextUnformatted("misc1");
+            }
+
+
+
+            if (ImGui::Button("remap click button") && !listening && !listeningClick)
+            {
+                if (runRemapClick.joinable()) {
+                    runRemapClick.join();  // Make sure old thread is done
+                }
+                runRemapClick = std::thread(RemapClick);
+            }
+            ImGui::SameLine();
+            if (listeningClick)
+            {
+                ImGui::TextUnformatted("<listening>");
+            }
+            else
+            {
+                ImGui::TextUnformatted("misc1");
+            }
+
+
+            
 
             if (ImGui::Button("DEBUG"))
             {
