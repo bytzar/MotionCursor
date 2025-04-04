@@ -46,8 +46,9 @@ std::vector<Macro> macros;
 std::thread runCheckMacros;
 
 bool checkMacrosbool = true;
-
 volatile bool macroRunningFuckyouUpdatLoop = false;
+
+int dataRate = 999;
 
 
 void Calibration()
@@ -89,8 +90,10 @@ bool isPressedMain(Macro* pMakro) //zurück in klasse, hatte nicht damit zu tun a
 
 void CheckMacros()
 {
+	const std::chrono::microseconds cycleDuration(1'000'000 / dataRate);
 	while (checkMacrosbool)
 	{
+		auto cycleStart = std::chrono::high_resolution_clock::now();
 		std::cout << "\ni am verbose";
 		//SDL_PumpEvents(); //? wichitg? zu viel=?
 		for (int i = 0; i < macros.size(); i++) //neue fuktion und ddan´´´threaden
@@ -113,6 +116,17 @@ void CheckMacros()
 			{
 				macros[i].isDown = false;
 			}
+		}
+		auto cycleEnd = std::chrono::high_resolution_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(cycleEnd - cycleStart);
+
+		// Sleep for the remaining time in the 5ms cycle
+		if (elapsed < cycleDuration) {
+			std::this_thread::sleep_for(cycleDuration - elapsed);
+		}
+		else {
+			// (Optional) Handle overrun here
+			std::cout << "unicode Cycle took too long! Dropping behind..." << std::endl;
 		}
 	}
 }
@@ -139,9 +153,11 @@ void UpdateLoop()
 	checkMacrosbool = true;
 	runCheckMacros = std::thread(CheckMacros);
 
+	const std::chrono::microseconds cycleDuration(1'000'000 / dataRate);
 	//was wenn controller gewechselt wird, tesen könnte einfach klappen muss mit freund weil hab kein anderen vernünftig gyro der nicht joycon weirdness hat joycon hat in sdl ja eigene joycon gyro zeug nervig
 	while (update) //muss immer true sein sonst terminated mainthread einfach und das schlimm!oh aber für interne zwekc könnte gut sein, für graceful shutdown zb müsste ich den loop beenden können -> nur mit variable einfach point blank kill execution ist auch nicht feine art//immer tru? bzw ist intended behaviour nicht dass es immer true ist. man soll ja mitten drinn nicht das ding pausieren können, wenn du das willst mach programm aus ist die idee. soll nicht so ein dummes program sein wo man es erst startet und dann muss man noch knopf drücken um funktionalität zu starten so wenn er nicht wollte hätte er program niht angemacht wenn er nicht mehr weill mach halt aus wa
 	{
+		auto cycleStart = std::chrono::high_resolution_clock::now();
 		if (activeCon) //CHECKPOINT ok also hab das geschrieben weil ich dachte auf active con mit anderen thread zu schreiben während hier rennt macht proboeme mit deinitialisierung oder so jedenfalls villeicht activecon atomic machen baer das wahre problem war akku ist einfach tod gegangen muss gucken dass das registriert und so eigenlich hat program alles richtig gemacht keine crashes und so weiter (nicht viel getestet) nur muss dieses dropdown aktualisiert werden und active zu <none>
 		{
 			SDL_PumpEvents();
@@ -228,6 +244,17 @@ void UpdateLoop()
 					}
 				}
 			}
+		}
+		auto cycleEnd = std::chrono::high_resolution_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(cycleEnd - cycleStart);
+
+		// Sleep for the remaining time in the 5ms cycle
+		if (elapsed < cycleDuration) {
+			std::this_thread::sleep_for(cycleDuration - elapsed);
+		}
+		else {
+			// (Optional) Handle overrun here
+			std::cout << "unicode Cycle took too long! Dropping behind..." << std::endl;
 		}
 	}
 	std::cout << "\nupdate loop thread deactive ";
@@ -328,6 +355,7 @@ void UpdateConList()
 		
 
 		float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
+		dataRate = (int) rete;
 		std::cout << "\n" << rete << "\n ";
 
 

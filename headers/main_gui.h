@@ -3,6 +3,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <chrono>
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 int mainRender(int, char**);

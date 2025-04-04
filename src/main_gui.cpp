@@ -123,6 +123,8 @@ int mainRender(int, char**)
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
     static float fontSize = 2.0f;
+    const int targetFPS = 10;
+    const std::chrono::milliseconds frameDuration(1000 / targetFPS);
     while (!done)
 #endif
     {
@@ -132,6 +134,7 @@ int mainRender(int, char**)
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         // [If using SDL_MAIN_USE_CALLBACKS: call ImGui_ImplSDL3_ProcessEvent() from your SDL_AppEvent() function]
+        auto frameStart = std::chrono::high_resolution_clock::now();
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -433,6 +436,13 @@ int mainRender(int, char**)
         SDL_RenderClear(renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
+
+        auto frameEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float, std::milli> elapsed = frameEnd - frameStart;
+
+        if (elapsed < frameDuration) {
+            std::this_thread::sleep_for(frameDuration - elapsed);
+        }
     }
 
 
