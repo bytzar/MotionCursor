@@ -28,8 +28,33 @@ extern SDL_GamepadAxis axisClick;
 extern bool triggerAct;
 extern bool triggerClick;
 
-void ReplayMacro(int pPosX, int pPosY);
+void ReplayMacro(int pPosX, int pPosY, bool pPreview);
 
 extern std::vector<int> macrosX;
 extern std::vector<int> macrosY;
+extern SDL_Gamepad* activeCon;
+
+class Macro
+{
+public:
+	SDL_GamepadButton buttonMac;
+	SDL_GamepadAxis axisMac;
+	bool triggerMacro;
+	int cursorX;
+	int cursorY;
+	std::string buttonLable;
+	bool listening; //for gui only, internal listening will be handled by global listening variable
+	bool isDown = false;
+
+	bool isPressed()
+	{
+		isDown = (SDL_GetGamepadButton(activeCon, buttonMac) && !triggerMacro) || (SDL_GetGamepadAxis(activeCon, axisMac) && triggerMacro && SDL_GetGamepadAxis(activeCon, axisMac) > 16000);
+		return isDown;
+	}
+};
+extern std::vector<Macro> macros;
+void RemapButton(Macro* pMacro);
+void ReplayMacro2(Macro* pMacro, bool pPreview);
+
+void UpdateLoop();
 //EXTERN NICHT VERGESSEN aq

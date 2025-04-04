@@ -41,6 +41,15 @@ bool triggerClick = false;
 std::vector<int> macrosX;
 std::vector<int> macrosY;
 
+std::vector<Macro> macros;
+
+std::thread runCheckMacros;
+
+bool checkMacrosbool = true;
+
+volatile bool macroRunningFuckyouUpdatLoop = false;
+
+
 void Calibration()
 {
 	if (!runningCal && activeCon)
@@ -72,6 +81,42 @@ void Calibration()
 	std::cout << "\ncal thread deactive ";
 }
 
+bool isPressedMain(Macro* pMakro) //zurück in klasse, hatte nicht damit zu tun also zurück wenn auch immer ich bopck hab
+{
+	(*pMakro).isDown = (SDL_GetGamepadButton(activeCon, (*pMakro).buttonMac) && !(*pMakro).triggerMacro) || (SDL_GetGamepadAxis(activeCon, (*pMakro).axisMac) && (*pMakro).triggerMacro && SDL_GetGamepadAxis(activeCon, (*pMakro).axisMac) > 16000);
+	return (*pMakro).isDown;
+}
+
+void CheckMacros()
+{
+	while (checkMacrosbool)
+	{
+		std::cout << "\ni am verbose";
+		//SDL_PumpEvents(); //? wichitg? zu viel=?
+		for (int i = 0; i < macros.size(); i++) //neue fuktion und ddan´´´threaden
+		{
+			std::cout << "\ni am super verbose";
+			if (!macros[i].isDown)
+			{
+				if (isPressedMain(&(macros[i])))
+				{
+					std::cout << "\ni am mega verbose";
+					macros[i].isDown = true;
+					macroRunningFuckyouUpdatLoop = true;
+					SDL_Delay(20);
+					ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
+					SDL_Delay(20);
+					macroRunningFuckyouUpdatLoop = false;
+				}
+			}
+			else if (!(isPressedMain(&(macros[i]))))
+			{
+				macros[i].isDown = false;
+			}
+		}
+	}
+}
+
 void UpdateLoop()
 {
     float data[2] = { 0.0f, 0.0f }; //Reset delta yaw and pitch for cursor
@@ -85,6 +130,14 @@ void UpdateLoop()
 
 	inputs[0].type = INPUT_MOUSE;
 	bool wasDown = false;
+
+	if (runCheckMacros.joinable())
+	{
+		checkMacrosbool = false;
+		runCheckMacros.join();
+	}
+	checkMacrosbool = true;
+	runCheckMacros = std::thread(CheckMacros);
 
 	//was wenn controller gewechselt wird, tesen könnte einfach klappen muss mit freund weil hab kein anderen vernünftig gyro der nicht joycon weirdness hat joycon hat in sdl ja eigene joycon gyro zeug nervig
 	while (update) //muss immer true sein sonst terminated mainthread einfach und das schlimm!oh aber für interne zwekc könnte gut sein, für graceful shutdown zb müsste ich den loop beenden können -> nur mit variable einfach point blank kill execution ist auch nicht feine art//immer tru? bzw ist intended behaviour nicht dass es immer true ist. man soll ja mitten drinn nicht das ding pausieren können, wenn du das willst mach programm aus ist die idee. soll nicht so ein dummes program sein wo man es erst startet und dann muss man noch knopf drücken um funktionalität zu starten so wenn er nicht wollte hätte er program niht angemacht wenn er nicht mehr weill mach halt aus wa
@@ -100,6 +153,10 @@ void UpdateLoop()
 				float data[2] = { 0.0f, 0.0f };
 				while ((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000))
 				{
+					while (macroRunningFuckyouUpdatLoop)
+					{
+
+					}
 					SDL_PumpEvents();
 
 					SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2);
@@ -176,14 +233,18 @@ void UpdateLoop()
 	std::cout << "\nupdate loop thread deactive ";
 }
 
+
+
 void UpdateCon(int pActiveConId)
 {
 	activeCon = SDL_OpenGamepad(pActiveConId); //brauche kem nicht einfach id plus 1, problem weil wir nur chars array rüber schicken aber mit reconnect und disconnect ich muss mit einher auch die kem ids schicken array mit zwei datentypen? oder... ne einfach noch ein array aber aus ints und einfach die kem werte in der richtigen reihenfolge. ungenutzte kems werden sowieso von sdl einfach geskiptt ja ok ez muss aber global lol so schlecht konvention
 	std::cout << "\nupdate con thread deactive ";
 }
 
+
 void UpdateConList()
 {
+	
 	if (activeCon)
 	{
 		SDL_CloseGamepad(activeCon);
@@ -193,6 +254,12 @@ void UpdateConList()
 	{
 		runUpdateLoop.join();
 	}
+	checkMacrosbool = false;
+	if (runCheckMacros.joinable())
+	{
+		runCheckMacros.join();
+	}
+	checkMacrosbool = true;
 	SDL_Delay(200); //if refresh has issues 50% of the time WHAT DA FUCK; this line is only needed, now get this, when the conroller id is EVEN! WHY?! been looking for a race condition this wole time this is so stupid wasted my day. why would the evenness of an id matter its so stupid. its probably something else and the evenness is just a sympton 
 
 
@@ -221,10 +288,12 @@ void UpdateConList()
 	SDL_JoystickID kem;
 	for (int i = 0; i < countControllers; i++)
 	{
+		std::cout << "\nich war " << conIds[i];
 		SDL_Gamepad* game = SDL_OpenGamepad(gem[i]);
 		kem = SDL_GetGamepadID(game);
 		conIds[i] = kem;
 		controllers[i] = SDL_GetGamepadNameForID(kem);
+		std::cout << "\njetzt bin ich " << conIds[i];
 	}
 
 
@@ -276,7 +345,7 @@ void UpdateConList()
 
 int main() //soon to be int init()
 {
-	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	//SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 	//UpdateConList();
 	mainRender(NULL, nullptr);
@@ -285,27 +354,6 @@ int main() //soon to be int init()
     //Calibration();
 	//UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace
 }
-
-/*
-void RecordMacro()
-{
-	MSG msg;
-	std::cout << "Waiting for next mouse click...\n";
-
-	// Wait for the next mouse event
-	while (GetMessage(&msg, NULL, WM_LBUTTONDOWN, WM_RBUTTONDOWN))
-	{
-		if (msg.message == WM_LBUTTONDOWN)
-		{
-			POINT cursorpos;
-			GetCursorPos(&cursorpos);
-			macrosX.push_back(cursorpos.x);
-			macrosY.push_back(cursorpos.y);
-			break;
-		}
-	}
-}*/
-
 HHOOK mouseHook = NULL;  // Hook handle
 
 LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -313,8 +361,10 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
 		MSLLHOOKSTRUCT* mouseInfo = (MSLLHOOKSTRUCT*)lParam;
 		std::cout << "Mouse clicked at: (" << mouseInfo->pt.x << ", " << mouseInfo->pt.y << ")\n";
 
-		macrosX.push_back(mouseInfo->pt.x);
-		macrosY.push_back(mouseInfo->pt.y);
+		Macro mac;
+		mac.cursorX = mouseInfo->pt.x;
+		mac.cursorY = mouseInfo->pt.y;
+		macros.push_back(mac);
 
 		// Stop listening after the first click
 		PostQuitMessage(0);
@@ -344,16 +394,19 @@ void RecordMacro() {
 	mouseHook = NULL;
 }
 
-void ReplayMacro(int pPosX, int pPosY)
+void ReplayMacro(int pPosX, int pPosY, bool pPreview)
 {
 	if (pPosX > 0 && pPosY > 0)
 	{
 		INPUT inputs[1] = {};
 		SetCursorPos(pPosX, pPosY);
-		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-		SendInput(1, inputs, sizeof(INPUT));
-		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
-		SendInput(1, inputs, sizeof(INPUT));
+		if (!pPreview)
+		{
+			inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+			SendInput(1, inputs, sizeof(INPUT));
+			inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+			SendInput(1, inputs, sizeof(INPUT));
+		}
 	}
 }
 
@@ -418,17 +471,6 @@ void RemapActivator()
 
 void RemapClick()
 {
-	/*
-		update = false;
-	if (runUpdateLoop.joinable())
-	{
-		runUpdateLoop.join();
-	}		SDL_PumpEvents();	update = true;
-	runUpdateLoop = std::thread(UpdateLoop); funktioniert nicht ohne klapps auch juckie
-	*/
-
-
-
 	SDL_Event event;
 	const int timeout_ms = 7000; // 7 seconds
 	Uint64 start_time = SDL_GetTicks();
@@ -465,4 +507,61 @@ void RemapClick()
 	//update loop in then cases starten
 	std::cout << "Timeout reached or input detected.\n";
 	listeningClick = false;
+}
+
+void RemapButton(Macro* pMacro)
+{
+	SDL_Event event;
+	const int timeout_ms = 7000; // 7 seconds
+	Uint64 start_time = SDL_GetTicks();
+	listening = true; //alles auf listening machen später nur noch eine listening variable für alle obwohl mit <listenining> text in gui könnte probleme wir werden sehen, listening in macro wa oder ist doch so. 1x listening allgemien damit kein anderer anfängt und einmal spezifisch für gui
+	(*pMacro).listening = true;
+
+	std::cout << "Waiting for button or trigger input... (7 seconds timeout)\n";
+
+	while (SDL_GetTicks() - start_time < timeout_ms) {
+
+		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
+		if (SDL_WaitEventTimeout(&event, remaining_time)) {
+
+			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+				(*pMacro).buttonMac = static_cast<SDL_GamepadButton>(event.gbutton.button);
+				std::cout << "Button pressed: " << buttonActivator << " (enum value)\n";
+				(*pMacro).buttonLable = SDL_GetGamepadStringForButton((*pMacro).buttonMac);
+				(*pMacro).triggerMacro = false;
+				break;
+			}
+			else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+				if (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || event.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
+					if (event.gaxis.value > 16000) {
+						(*pMacro).axisMac = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
+						(*pMacro).triggerMacro = true;
+						(*pMacro).buttonLable = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger";
+						std::cout << (*pMacro).buttonLable << " pressed.\n";
+						break;
+					}
+				}
+			}
+		}
+	}
+	//update loop in then cases starten
+	std::cout << "Timeout reached or input detected.\n";
+	listening = false;
+	(*pMacro).listening = true;
+}
+
+void ReplayMacro2(Macro* pMacro, bool pPreview)
+{
+	if ((*pMacro).cursorX > 0 && (*pMacro).cursorY > 0)
+	{
+		INPUT inputs[1] = {};
+		SetCursorPos((*pMacro).cursorX, (*pMacro).cursorY);
+		if (!pPreview)
+		{
+			inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+			SendInput(1, inputs, sizeof(INPUT));
+			inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+			SendInput(1, inputs, sizeof(INPUT));
+		}
+	}
 }

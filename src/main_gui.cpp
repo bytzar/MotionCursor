@@ -32,11 +32,14 @@ std::thread runUpdateCon;
 std::thread runUpdateConList;
 std::thread runRemapAct;
 std::thread runRemapClick;
+std::thread runRemapMacro;
+std::thread runPreviewMacro;
 
 bool virginCall = true;
 bool first = true;
 ImGuiID dockspace_id;
 float sensitivity = 1;
+int theListeningOne = -1;
 
 // Main code
 int mainRender(int, char**)
@@ -77,7 +80,6 @@ int mainRender(int, char**)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     io.ConfigFlags |= ImGuiWindowFlags_NoTitleBar;
@@ -200,25 +202,55 @@ int mainRender(int, char**)
 
             ImGui::Begin("macros", NULL, window_flags);                          // Create a window called "Settings" and append into it.
 
-            for (int i = 0; i < macrosX.size(); i++)
+            for (int i = 0; i < macros.size(); i++)
             {
                 std::string str = "x: ";
-                str += std::to_string(macrosX[i]);
+                str += std::to_string(macros[i].cursorX);
                 str += " ";
                 char const* pchar = str.c_str();
                 ImGui::TextUnformatted(pchar);
                 ImGui::SameLine();
                 str = "y: ";
-                str += std::to_string(macrosY[i]);
+                str += std::to_string(macros[i].cursorY);
                 pchar = str.c_str();
                 ImGui::TextUnformatted(pchar);
                 ImGui::SameLine();
-                str = "replay macro ";
+                str = "preiew macro ";
                 str += std::to_string(i);
                 pchar = str.c_str();
                 if (ImGui::Button(pchar))
                 {
-                    ReplayMacro(macrosX[i], macrosY[i]); //main thread weil grad kein bock
+                    if (runPreviewMacro.joinable())
+                    {
+                        runPreviewMacro.join();
+                    }
+                    runPreviewMacro = std::thread(ReplayMacro2, &macros[i], true);
+                    //ReplayMacro2(&(macros[i]), true); //main thread weil grad kein bock //MACRO WERDEN VOM UPDATELOOP ÜBERSCHRIEBEN. UPDATELOOP MUSS PAUSIERT WERDEN SONST geht nicht. oder warte hab idee
+                }
+
+                ImGui::SameLine();
+                str = "remap button for macro ";
+                str += std::to_string(i);
+                pchar = str.c_str();
+                if (ImGui::Button(pchar) && !listening)
+                {
+                    theListeningOne = i;
+                    if (runRemapMacro.joinable())
+                    {
+                        runRemapMacro.join();
+                    }
+                    runRemapMacro = std::thread(RemapButton, &macros[i]);
+                    //RemapButton(&(macros[i])); //main thread weil grad kein bock, ah ich glaub ich schick main weg und dann terminiert... oder so ne... wenn funktion terminiert müsste er hier einfach weitermachen
+                }
+                ImGui::SameLine();
+                str = macros[i].buttonLable;
+                if (!listening || i != theListeningOne)
+                {
+                    ImGui::TextUnformatted((!str._Equal("") ? str.c_str() : "<none>"));
+                }
+                else
+                {
+                    ImGui::TextUnformatted((!str._Equal("") ? str.c_str() : "<listening>"));
                 }
             }
 
@@ -292,7 +324,12 @@ int mainRender(int, char**)
             {
                 ImGui::SeparatorText("Controllers");
                 for (int i = 0; i < controllers.size(); i++)
-                    if (ImGui::Selectable(controllers[i]))
+                {
+                    std::string str = std::to_string(i);
+                    str += " ";
+                    str += controllers[i];
+                    char const* pchar = str.c_str();
+                    if (ImGui::Selectable(pchar))
                     {
                         if (activeConId != i) //ganz kurz
                         {
@@ -313,6 +350,7 @@ int mainRender(int, char**)
                         }
                         activeConId = i;
                     }
+                } //falls kaputt klammer weg und indent
                 ImGui::EndPopup();
             }
 
