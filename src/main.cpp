@@ -82,20 +82,29 @@ void Calibration()
 	std::cout << "\ncal thread deactive ";
 }
 
-bool isPressedMain(Macro* pMakro) //zurück in klasse, hatte nicht damit zu tun also zurück wenn auch immer ich bopck hab
+bool isPressedMain(Macro* pMakro, SDL_Event pEvent) //zurück in klasse, hatte nicht damit zu tun also zurück wenn auch immer ich bopck hab
 {
-	(*pMakro).isDown = (SDL_GetGamepadButton(activeCon, (*pMakro).buttonMac) && !(*pMakro).triggerMacro) || (SDL_GetGamepadAxis(activeCon, (*pMakro).axisMac) && (*pMakro).triggerMacro && SDL_GetGamepadAxis(activeCon, (*pMakro).axisMac) > 16000);
-	return (*pMakro).isDown;
+	//(*pMakro).isDown = (SDL_GetGamepadButton(activeCon, (*pMakro).buttonMac) && !(*pMakro).triggerMacro) || (SDL_GetGamepadAxis(activeCon, (*pMakro).axisMac) && (*pMakro).triggerMacro && SDL_GetGamepadAxis(activeCon, (*pMakro).axisMac) > 16000);
+	(*pMakro).isDown = false;
+	if (pEvent.type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
+	{
+		(*pMakro).isDown = ((pEvent.gaxis.axis == (*pMakro).axisMac) && (*pMakro).triggerMacro && (SDL_GetGamepadAxis(activeCon, (*pMakro).axisMac) > 16000)); //
+	}
+	else if (pEvent.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+	{
+		(*pMakro).isDown = (static_cast<SDL_GamepadButton>(pEvent.gbutton.button) == (*pMakro).buttonMac) && !(*pMakro).triggerMacro;
+	}
+	std::cout << "\n TOKEN " << (*pMakro).isDown;
+	return (*pMakro).isDown; //warum wid manchmal doppelt recorded?
 }
 
 void CheckMacros()
-{
-	const std::chrono::microseconds cycleDuration(1'000'000 / dataRate);
+{/*
+	const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate*10));
 	while (checkMacrosbool)
 	{
 		auto cycleStart = std::chrono::high_resolution_clock::now();
 		std::cout << "\ni am verbose";
-		//SDL_PumpEvents(); //? wichitg? zu viel=?
 		for (int i = 0; i < macros.size(); i++) //neue fuktion und ddan´´´threaden
 		{
 			std::cout << "\ni am super verbose";
@@ -116,17 +125,20 @@ void CheckMacros()
 			{
 				macros[i].isDown = false;
 			}
-		}
-		auto cycleEnd = std::chrono::high_resolution_clock::now();
-		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(cycleEnd - cycleStart);
+		} //CUURR das funktioniert nicht mit datarate ohne ist aber zu krass villeicht in update loop reinintigrieren ne nenenene problem ist das inputs nicht gecatched werden?
+	}*/
+	while (false) //for deb das hier hat ausch schuld am doppel macro record aber es gitb auch das man einfach mehrfach record drücken kann könnte sogar feature sein wenn ichs richtig mache
+	{
+		SDL_Event event;
+		SDL_PollEvent(&event);
+		
+		if (SDL_WaitEvent(&event)) {
 
-		// Sleep for the remaining time in the 5ms cycle
-		if (elapsed < cycleDuration) {
-			std::this_thread::sleep_for(cycleDuration - elapsed);
-		}
-		else {
-			// (Optional) Handle overrun here
-			std::cout << "unicode Cycle took too long! Dropping behind..." << std::endl;
+			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+				bool yrk = SDL_GAMEPAD_BUTTON_EAST == static_cast<SDL_GamepadButton>(event.gbutton.button);
+				isPressedMain(&macros[0], event);
+				std::cout << "Button ich bins: " << yrk << " (nenum value)\n";
+			}
 		}
 	}
 }
@@ -171,7 +183,7 @@ void UpdateLoop()
 				{
 					while (macroRunningFuckyouUpdatLoop)
 					{
-
+						//trap the update thread without killing it because otherwise bug
 					}
 					SDL_PumpEvents();
 
@@ -554,7 +566,7 @@ void RemapButton(Macro* pMacro)
 
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
 				(*pMacro).buttonMac = static_cast<SDL_GamepadButton>(event.gbutton.button);
-				std::cout << "Button pressed: " << buttonActivator << " (enum value)\n";
+				std::cout << "Button pressed: " << (*pMacro).buttonMac << " (enum value)\n";
 				(*pMacro).buttonLable = SDL_GetGamepadStringForButton((*pMacro).buttonMac);
 				(*pMacro).triggerMacro = false;
 				break;

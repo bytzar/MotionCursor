@@ -123,7 +123,7 @@ int mainRender(int, char**)
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
     static float fontSize = 2.0f;
-    const int targetFPS = 10;
+    const int targetFPS = 15;
     const std::chrono::milliseconds frameDuration(1000 / targetFPS);
     while (!done)
 #endif
