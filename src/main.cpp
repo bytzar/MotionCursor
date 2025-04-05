@@ -48,8 +48,7 @@ std::thread runCheckMacros;
 bool checkMacrosbool = true;
 volatile bool macroRunningFuckyouUpdatLoop = false;
 
-int dataRate = 999;
-
+int dataRate = 200;
 
 void Calibration()
 {
@@ -61,7 +60,7 @@ void Calibration()
     float yDrift[10];
     for (int i = 0; i < 10; i++) //calibaration, takes 10 samples of idle gyro for avg and counters later TODO: needs feedack for end of calibration
     {
-        SDL_PumpEvents();
+        //müsste nicht mehr necessarySDL_PumpEvents(); //darf hier nicht sein, nur on main tread SOWOHL pump events als auch Polleevent müssen in main alle 200oder was auch immer datarate zentral gepullt werden
 
         SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, drift, 2);
         xDrift[i] = drift[1];
@@ -99,48 +98,58 @@ bool isPressedMain(Macro* pMakro, SDL_Event pEvent) //zurück in klasse, hatte ni
 }
 
 void CheckMacros()
-{/*
-	const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate*10));
-	while (checkMacrosbool)
-	{
-		auto cycleStart = std::chrono::high_resolution_clock::now();
-		std::cout << "\ni am verbose";
-		for (int i = 0; i < macros.size(); i++) //neue fuktion und ddan´´´threaden
-		{
-			std::cout << "\ni am super verbose";
-			if (!macros[i].isDown)
-			{
-				if (isPressedMain(&(macros[i])))
-				{
-					std::cout << "\ni am mega verbose";
-					macros[i].isDown = true;
-					macroRunningFuckyouUpdatLoop = true;
-					SDL_Delay(20);
-					ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
-					SDL_Delay(20);
-					macroRunningFuckyouUpdatLoop = false;
-				}
-			}
-			else if (!(isPressedMain(&(macros[i]))))
-			{
-				macros[i].isDown = false;
-			}
-		} //CUURR das funktioniert nicht mit datarate ohne ist aber zu krass villeicht in update loop reinintigrieren ne nenenene problem ist das inputs nicht gecatched werden?
-	}*/
-	while (false) //for deb das hier hat ausch schuld am doppel macro record aber es gitb auch das man einfach mehrfach record drücken kann könnte sogar feature sein wenn ichs richtig mache
-	{
-		SDL_Event event;
-		SDL_PollEvent(&event);
-		
-		if (SDL_WaitEvent(&event)) {
+{
+	//const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate));
 
+	while (checkMacrosbool) //terminiert einfach
+	{
+		if (macros.size() > 0)
+		{
+			//auto cycleStart = std::chrono::high_resolution_clock::now();
+			std::cout << "\ni am verbose";
+			if (SDL_WaitEvent(&event))
+			{
+				for (int i = 0; i < macros.size(); i++) //neue fuktion und ddan´´´threaden
+				{
+					std::cout << "\ni am super verbose";
+					if (!macros[i].isDown)
+					{
+						std::cout << "\ni am super DUPER verbose";
+						if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+						{
+							if (macros[i].buttonMac == static_cast<SDL_GamepadButton>(event.gbutton.button))
+							{
+								std::cout << "\ni am mega verbose";
+								//macros[i].isDown = true;
+								macroRunningFuckyouUpdatLoop = true;
+								SDL_Delay(20);
+								ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
+								SDL_Delay(20);
+								macroRunningFuckyouUpdatLoop = false;
+							}
+						}
+					}
+			}
+			
+			}
+		}
+		 //CUURR das funktioniert nicht mit datarate ohne ist aber zu krass villeicht in update loop reinintigrieren ne nenenene problem ist das inputs nicht gecatched werden?
+	}
+
+	/*
+	while (true) //for deb das hier hat ausch schuld am doppel macro record aber es gitb auch das man einfach mehrfach record drücken kann könnte sogar feature sein wenn ichs richtig mache
+	{ //ich kann NCIHT überall wo ichs brauche einfach events pollen und lesen und was auch immer muss central passieren denke ich mal. einfach etwas was ka 200 mal die sekunde poll events auf public var events macht eun alle können AHHHHH WAS WENN DEQUED WIRD EIN EVENT NACH DEM LESEN, ja ist so aber lösung ist gleich 1X zentral das event für den frame oder so pollen und alle greifen auf das event zu 
+		if (true) {
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
 				bool yrk = SDL_GAMEPAD_BUTTON_EAST == static_cast<SDL_GamepadButton>(event.gbutton.button);
-				isPressedMain(&macros[0], event);
+				//isPressedMain(&macros[0], event); //
 				std::cout << "Button ich bins: " << yrk << " (nenum value)\n";
 			}
 		}
 	}
+	*/
+	
+
 }
 
 void UpdateLoop()
@@ -165,14 +174,14 @@ void UpdateLoop()
 	checkMacrosbool = true;
 	runCheckMacros = std::thread(CheckMacros);
 
-	const std::chrono::microseconds cycleDuration(1'000'000 / dataRate);
+	const std::chrono::microseconds cycleDuration(1'000'000 / 200); //datarate aber ich cap glaub ich auch 200 oder mach es wenigstens einstellbar ne scheiß drauf ich mach 200 mehr braucht niemand
 	//was wenn controller gewechselt wird, tesen könnte einfach klappen muss mit freund weil hab kein anderen vernünftig gyro der nicht joycon weirdness hat joycon hat in sdl ja eigene joycon gyro zeug nervig
 	while (update) //muss immer true sein sonst terminated mainthread einfach und das schlimm!oh aber für interne zwekc könnte gut sein, für graceful shutdown zb müsste ich den loop beenden können -> nur mit variable einfach point blank kill execution ist auch nicht feine art//immer tru? bzw ist intended behaviour nicht dass es immer true ist. man soll ja mitten drinn nicht das ding pausieren können, wenn du das willst mach programm aus ist die idee. soll nicht so ein dummes program sein wo man es erst startet und dann muss man noch knopf drücken um funktionalität zu starten so wenn er nicht wollte hätte er program niht angemacht wenn er nicht mehr weill mach halt aus wa
 	{
 		auto cycleStart = std::chrono::high_resolution_clock::now();
 		if (activeCon) //CHECKPOINT ok also hab das geschrieben weil ich dachte auf active con mit anderen thread zu schreiben während hier rennt macht proboeme mit deinitialisierung oder so jedenfalls villeicht activecon atomic machen baer das wahre problem war akku ist einfach tod gegangen muss gucken dass das registriert und so eigenlich hat program alles richtig gemacht keine crashes und so weiter (nicht viel getestet) nur muss dieses dropdown aktualisiert werden und active zu <none>
 		{
-			SDL_PumpEvents();
+			//SDL_PumpEvents();
 			if ((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) //checks for activation button be pressed
 			{
 				cursorPos.x = screenWidth / 2;
@@ -185,7 +194,7 @@ void UpdateLoop()
 					{
 						//trap the update thread without killing it because otherwise bug
 					}
-					SDL_PumpEvents();
+					SDL_PumpEvents(); //sonst nicht smooth
 
 					SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2);
 
@@ -470,7 +479,7 @@ void RemapActivator()
 
 	
 
-	SDL_Event event;
+
 	const int timeout_ms = 7000; // 7 seconds
 	Uint64 start_time = SDL_GetTicks();
 	listening = true;
@@ -480,7 +489,7 @@ void RemapActivator()
 	while (SDL_GetTicks() - start_time < timeout_ms) {
 
 		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (SDL_WaitEventTimeout(&event, remaining_time)) {
+		if (true) { // ehrlich einfah so lassen klappt ja ka SDL_WaitEventTimeout(&event, remaining_time) kann sein das probleme davon kommen das nicht auf main thread ist
 
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
 				buttonActivator = static_cast<SDL_GamepadButton>(event.gbutton.button);
@@ -511,7 +520,6 @@ void RemapActivator()
 
 void RemapClick()
 {
-	SDL_Event event;
 	const int timeout_ms = 7000; // 7 seconds
 	Uint64 start_time = SDL_GetTicks();
 	listeningClick = true;
@@ -521,7 +529,7 @@ void RemapClick()
 	while (SDL_GetTicks() - start_time < timeout_ms) {
 
 		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (SDL_WaitEventTimeout(&event, remaining_time)) {
+		if (true) { //SDL_WaitEventTimeout(&event, remaining_time)
 
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
 				buttonClick = static_cast<SDL_GamepadButton>(event.gbutton.button);
@@ -551,7 +559,6 @@ void RemapClick()
 
 void RemapButton(Macro* pMacro)
 {
-	SDL_Event event;
 	const int timeout_ms = 7000; // 7 seconds
 	Uint64 start_time = SDL_GetTicks();
 	listening = true; //alles auf listening machen später nur noch eine listening variable für alle obwohl mit <listenining> text in gui könnte probleme wir werden sehen, listening in macro wa oder ist doch so. 1x listening allgemien damit kein anderer anfängt und einmal spezifisch für gui
@@ -562,7 +569,7 @@ void RemapButton(Macro* pMacro)
 	while (SDL_GetTicks() - start_time < timeout_ms) {
 
 		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (SDL_WaitEventTimeout(&event, remaining_time)) {
+		if (true) { //hoffen und beten SDL_WaitEventTimeout(&event, remaining_time)
 
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
 				(*pMacro).buttonMac = static_cast<SDL_GamepadButton>(event.gbutton.button);
@@ -587,7 +594,8 @@ void RemapButton(Macro* pMacro)
 	//update loop in then cases starten
 	std::cout << "Timeout reached or input detected.\n";
 	listening = false;
-	(*pMacro).listening = true;
+	(*pMacro).listening = false;
+	theListeningOne = -1;
 }
 
 void ReplayMacro2(Macro* pMacro, bool pPreview)

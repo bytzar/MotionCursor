@@ -35,6 +35,7 @@ extern std::vector<int> macrosX;
 extern std::vector<int> macrosY;
 extern SDL_Gamepad* activeCon;
 
+
 class Macro
 {
 public:
@@ -58,4 +59,8 @@ void RemapButton(Macro* pMacro);
 void ReplayMacro2(Macro* pMacro, bool pPreview);
 
 void UpdateLoop();
+
+extern SDL_Event event;
+
+extern int theListeningOne;
 //EXTERN NICHT VERGESSEN aq

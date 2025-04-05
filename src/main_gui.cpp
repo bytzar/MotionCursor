@@ -41,6 +41,8 @@ ImGuiID dockspace_id;
 float sensitivity = 1;
 int theListeningOne = -1;
 
+SDL_Event event;
+
 // Main code
 int mainRender(int, char**)
 {
@@ -135,9 +137,9 @@ int mainRender(int, char**)
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         // [If using SDL_MAIN_USE_CALLBACKS: call ImGui_ImplSDL3_ProcessEvent() from your SDL_AppEvent() function]
         auto frameStart = std::chrono::high_resolution_clock::now();
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
+        while (SDL_PollEvent(&event)) //Diesen code villeciht in den 200ms block reintun!!!!WAIT HALLO GUCK HIER DASD KÖNNTE ES`SEINEINFACH DAS GLIBAL aber nur efso 15 mal die selkunde9ßitjgjfkr49jgjq+000004ßwjr ölk
+        {//warte das ist magic code. der lloopt einfach hier alleine ohne fick auf 15ms zu geben. hier mach ich alles joker lets go wieder glück gehabt
+            //SDL_PumpEvents(); //sdl pollevent macht schon brauch ich nicht noch explicit. damals hatte ich ncith pollevent da musste ich rufen
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
                 done = true;
@@ -253,7 +255,7 @@ int mainRender(int, char**)
                 }
                 else
                 {
-                    ImGui::TextUnformatted((!str._Equal("") ? str.c_str() : "<listening>"));
+                    ImGui::TextUnformatted(("<listening>"));
                 }
             }
 
@@ -421,7 +423,10 @@ int mainRender(int, char**)
 
             if (ImGui::Button("DEBUG"))
             {
-                DEBUG();
+                if (!listening)
+                {
+                    DEBUG();
+                }
             }
 
             ImGui::End();
@@ -436,6 +441,7 @@ int mainRender(int, char**)
         SDL_RenderClear(renderer);
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
+
 
         auto frameEnd = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float, std::milli> elapsed = frameEnd - frameStart;
