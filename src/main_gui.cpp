@@ -34,6 +34,7 @@ std::thread runRemapAct;
 std::thread runRemapClick;
 std::thread runRemapMacro;
 std::thread runPreviewMacro;
+std::thread runRecordMacro;
 
 bool virginCall = true;
 bool first = true;
@@ -209,10 +210,23 @@ int mainRender(int, char**)
 
             for (int i = 0; i < macros.size(); i++)
             {
-                std::string str = "x: ";
-                str += std::to_string(macros[i].cursorX);
+                std::string str = "remove macro ";
+                str += std::to_string(i);
                 str += " ";
                 char const* pchar = str.c_str();
+                if (ImGui::Button(pchar) && !listening && !listeningClick)
+                {
+                    if (runRemapMacro.joinable())
+                    {
+                        runRemapMacro.join();
+                    }
+                    macros.erase(macros.begin() + i);
+                }
+                ImGui::SameLine();
+                str = "x: ";
+                str += std::to_string(macros[i].cursorX);
+                str += " ";
+                pchar = str.c_str();
                 ImGui::TextUnformatted(pchar);
                 ImGui::SameLine();
                 str = "y: ";
@@ -257,6 +271,23 @@ int mainRender(int, char**)
                 {
                     ImGui::TextUnformatted(("<listening>"));
                 }
+                ImGui::SameLine();
+                str = "unmap macro ";
+                str += std::to_string(i);
+                str += " ";
+                pchar = str.c_str();
+                if (ImGui::Button(pchar) && !listening && !listeningClick)
+                {
+                    if (runRemapMacro.joinable())
+                    {
+                        runRemapMacro.join();
+                    }
+                    macros[i].buttonMac = static_cast<SDL_GamepadButton>(-1);
+                    macros[i].triggerMacro = false;
+                    macros[i].buttonLable = "";
+                }
+                
+
             }
 
 
@@ -418,17 +449,37 @@ int mainRender(int, char**)
                 }
             }
 
-
             
 
-            if (ImGui::Button("DEBUG"))
+            if (ImGui::Button("record macro"))
             {
                 if (!listening)
                 {
-                    DEBUG();
+                    if (runRecordMacro.joinable())
+                    {
+                        runRecordMacro.join();
+                    }
+                    runRecordMacro = std::thread(RecordMacro);
                 }
             }
+            if (guiRecordingMacro)
+            {
+                ImGui::SameLine();
+                ImGui::TextUnformatted("<recording>");
+            }
 
+            bool a;
+            bool b;
+            bool c;
+
+            ImGui::Checkbox("Do not require activation button for macros", &a); //defaul an
+            ImGui::Checkbox("Do not require activation for gyro cursor", &a); //default off
+            ImGui::Checkbox("Do not require activation left clicking", &a); //default off
+            ImGui::Checkbox("disable left clicking", &a); //default off
+            ImGui::Checkbox("disable gyro cursor", &a); //default off
+            ImGui::Checkbox("disable macros", &a); //default off
+
+            
             ImGui::End();
         }
         ////////////////////////////////////

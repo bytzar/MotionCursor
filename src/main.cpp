@@ -50,6 +50,8 @@ volatile bool macroRunningFuckyouUpdatLoop = false;
 
 int dataRate = 200;
 
+bool guiRecordingMacro;
+
 void Calibration()
 {
 	if (!runningCal && activeCon)
@@ -99,10 +101,12 @@ bool isPressedMain(Macro* pMakro, SDL_Event pEvent) //zurück in klasse, hatte ni
 
 void CheckMacros()
 {
-	//const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate));
-
+	//const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate)); DAS HIER ALS NÄCHSTES OPTIMIZATION; DANN SAVE SETTINGS ODER NE DAVOR NOCH	DIESE CHECKBOXEN NE DAVOR NOCH DAS MAN MACROS LÖSCHEN KANN UND INPUT RESET UND DANN DEN DEBUG KNOPF SCHÖN ZU NEM RECORD MACRO KNOPF MACHEN
+	const int targetFPS = 100;
+	const std::chrono::milliseconds frameDuration4(1000 / targetFPS);
 	while (checkMacrosbool) //terminiert einfach
 	{
+		auto frameStart4 = std::chrono::high_resolution_clock::now();
 		if (macros.size() > 0)
 		{
 			//auto cycleStart = std::chrono::high_resolution_clock::now();
@@ -115,7 +119,7 @@ void CheckMacros()
 					if (!macros[i].isDown)
 					{
 						std::cout << "\ni am super DUPER verbose";
-						if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+						if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && !macros[i].triggerMacro)
 						{
 							if (macros[i].buttonMac == static_cast<SDL_GamepadButton>(event.gbutton.button))
 							{
@@ -128,10 +132,30 @@ void CheckMacros()
 								macroRunningFuckyouUpdatLoop = false;
 							}
 						}
+						else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && macros[i].triggerMacro)
+						{
+							if (event.gaxis.axis == macros[i].axisMac)
+							{
+								if (event.gaxis.value > 16000)
+								{
+									macroRunningFuckyouUpdatLoop = true;
+									SDL_Delay(20);
+									ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
+									SDL_Delay(20);
+									macroRunningFuckyouUpdatLoop = false;
+								}
+							}
+						}
 					}
-			}
+				}
 			
 			}
+		}
+		auto frameEnd4 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float, std::milli> elapsed4 = frameEnd4 - frameStart4;
+
+		if (elapsed4 < frameDuration4) {
+			std::this_thread::sleep_for(frameDuration4 - elapsed4);
 		}
 		 //CUURR das funktioniert nicht mit datarate ohne ist aber zu krass villeicht in update loop reinintigrieren ne nenenene problem ist das inputs nicht gecatched werden?
 	}
@@ -422,6 +446,7 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
 }
 
 void RecordMacro() {
+	guiRecordingMacro = true;
 	std::cout << "Waiting for next mouse click...\n";
 
 	// Install the hook
@@ -441,6 +466,7 @@ void RecordMacro() {
 	// Uninstall the hook after the first click
 	UnhookWindowsHookEx(mouseHook);
 	mouseHook = NULL;
+	guiRecordingMacro = false;
 }
 
 void ReplayMacro(int pPosX, int pPosY, bool pPreview)

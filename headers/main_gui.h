@@ -61,6 +61,8 @@ void ReplayMacro2(Macro* pMacro, bool pPreview);
 void UpdateLoop();
 
 extern SDL_Event event;
+void RecordMacro();
+extern bool guiRecordingMacro;
 
 extern int theListeningOne;
 //EXTERN NICHT VERGESSEN aq
