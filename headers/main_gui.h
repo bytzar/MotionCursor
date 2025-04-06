@@ -64,5 +64,17 @@ extern SDL_Event event;
 void RecordMacro();
 extern bool guiRecordingMacro;
 
+extern bool calibrated;
+
+extern bool NoReqAcGyrocursor;
+extern bool NoReqAcLeftClick;
+extern bool NoReqAcMacro; //activation macro
+extern bool NoGyroCursor;
+extern bool NoLeftClick; //neue konvention weil cool irgendwie. der rat der high level bools
+extern bool NoMacros;
+
+
+
+
 extern int theListeningOne;
 //EXTERN NICHT VERGESSEN aq

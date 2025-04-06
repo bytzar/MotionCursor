@@ -17,6 +17,7 @@ SDL_Gamepad* activeCon;
 
 float avgDriftX;
 float avgDriftY;
+bool calibrated = false;
 
 
 std::atomic<bool> runningCal = false;
@@ -52,6 +53,8 @@ int dataRate = 200;
 
 bool guiRecordingMacro;
 
+bool isActivation = false;
+
 void Calibration()
 {
 	if (!runningCal && activeCon)
@@ -79,6 +82,7 @@ void Calibration()
     avgDriftX = std::accumulate(xDrift + 1, xDrift + 10, 0.0f) / 9.0f; //skips first value because it is 0 for ome reason. then divides by 9 as ve avergae 9 values
     avgDriftY = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
 	runningCal = false;
+	calibrated = true;
 	}
 	std::cout << "\ncal thread deactive ";
 }
@@ -99,56 +103,104 @@ bool isPressedMain(Macro* pMakro, SDL_Event pEvent) //zurück in klasse, hatte ni
 	return (*pMakro).isDown; //warum wid manchmal doppelt recorded?
 }
 
-void CheckMacros()
+void isSelftContraned() //isSelftContraned
 {
-	//const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate)); DAS HIER ALS NÄCHSTES OPTIMIZATION; DANN SAVE SETTINGS ODER NE DAVOR NOCH	DIESE CHECKBOXEN NE DAVOR NOCH DAS MAN MACROS LÖSCHEN KANN UND INPUT RESET UND DANN DEN DEBUG KNOPF SCHÖN ZU NEM RECORD MACRO KNOPF MACHEN
+	SDL_Event event;
+	while (checkMacrosbool) {
+		auto frameStart = std::chrono::high_resolution_clock::now();
+
+		// Wait up to 10ms for an event. If nothing comes, it returns false.
+		while (SDL_WaitEventTimeout(&event, 10)) {
+			for (auto& macro : macros) {
+				if (!macro.isDown) {
+					if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && !macro.triggerMacro) {
+						if (macro.buttonMac == static_cast<SDL_GamepadButton>(event.gbutton.button)) {
+							macroRunningFuckyouUpdatLoop = true;
+							SDL_Delay(20);
+							ReplayMacro2(&macro, false);
+							SDL_Delay(20);
+							macroRunningFuckyouUpdatLoop = false;
+						}
+					}
+					else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && macro.triggerMacro) {
+						if (event.gaxis.axis == macro.axisMac && event.gaxis.value > 16000) {
+							macroRunningFuckyouUpdatLoop = true;
+							SDL_Delay(20);
+							ReplayMacro2(&macro, false);
+							SDL_Delay(20);
+							macroRunningFuckyouUpdatLoop = false;
+						}
+					}
+				}
+			}
+		}
+
+		// You can still throttle further if needed
+		auto frameEnd = std::chrono::high_resolution_clock::now();
+		auto elapsed = frameEnd - frameStart;
+		const std::chrono::milliseconds frameDuration(1000 / 100);
+		if (elapsed < frameDuration) {
+			std::this_thread::sleep_for(frameDuration - elapsed);
+		}
+	}
+
+}
+
+void CheckMacros() //CheckMacros
+{
+	//const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate)); und schießen muss funktionieren und console muss weg DAS HIER ALS NÄCHSTES OPTIMIZATION; DANN SAVE SETTINGS ODER NE DAVOR NOCH	DIESE CHECKBOXEN NE DAVOR NOCH DAS MAN MACROS LÖSCHEN KANN UND INPUT RESET UND DANN DEN DEBUG KNOPF SCHÖN ZU NEM RECORD MACRO KNOPF MACHEN
 	const int targetFPS = 100;
 	const std::chrono::milliseconds frameDuration4(1000 / targetFPS);
 	while (checkMacrosbool) //terminiert einfach
 	{
 		auto frameStart4 = std::chrono::high_resolution_clock::now();
-		if (macros.size() > 0)
+		if (true) //ey kein bock mehr so wetten beim löschen ich mach was kaputt so scheiß drauf einfach da lassen
 		{
 			//auto cycleStart = std::chrono::high_resolution_clock::now();
-			std::cout << "\ni am verbose";
+			//std::cout << "\ni am verbose";
 			if (SDL_WaitEvent(&event))
 			{
-				for (int i = 0; i < macros.size(); i++) //neue fuktion und ddan´´´threaden
+				if ((isActivation || NoReqAcMacro) && !NoMacros)
 				{
-					std::cout << "\ni am super verbose";
-					if (!macros[i].isDown)
+					if (macros.size() > 0)
 					{
-						std::cout << "\ni am super DUPER verbose";
-						if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && !macros[i].triggerMacro)
+						for (int i = 0; i < macros.size(); i++) //neue fuktion und ddan´´´threaden
 						{
-							if (macros[i].buttonMac == static_cast<SDL_GamepadButton>(event.gbutton.button))
+							std::cout << "\ni am super verbose";
+							if (!macros[i].isDown)
 							{
-								std::cout << "\ni am mega verbose";
-								//macros[i].isDown = true;
-								macroRunningFuckyouUpdatLoop = true;
-								SDL_Delay(20);
-								ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
-								SDL_Delay(20);
-								macroRunningFuckyouUpdatLoop = false;
-							}
-						}
-						else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && macros[i].triggerMacro)
-						{
-							if (event.gaxis.axis == macros[i].axisMac)
-							{
-								if (event.gaxis.value > 16000)
+								std::cout << "\ni am super DUPER verbose";
+								if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && !macros[i].triggerMacro)
 								{
-									macroRunningFuckyouUpdatLoop = true;
-									SDL_Delay(20);
-									ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
-									SDL_Delay(20);
-									macroRunningFuckyouUpdatLoop = false;
+									if (macros[i].buttonMac == static_cast<SDL_GamepadButton>(event.gbutton.button))
+									{
+										std::cout << "\ni am mega verbose";
+										//macros[i].isDown = true;
+										macroRunningFuckyouUpdatLoop = true;
+										SDL_Delay(20);
+										ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
+										SDL_Delay(20);
+										macroRunningFuckyouUpdatLoop = false;
+									}
+								}
+								else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && macros[i].triggerMacro)
+								{
+									if (event.gaxis.axis == macros[i].axisMac)
+									{
+										if (event.gaxis.value > 16000)
+										{
+											macroRunningFuckyouUpdatLoop = true;
+											SDL_Delay(20);
+											ReplayMacro2(&macros[i], false); //gedrückt halten soll nur einmal sowie bei klick mit was down und nach replay freezed der weg
+											SDL_Delay(20);
+											macroRunningFuckyouUpdatLoop = false;
+										}
+									}
 								}
 							}
 						}
 					}
 				}
-			
 			}
 		}
 		auto frameEnd4 = std::chrono::high_resolution_clock::now();
@@ -206,13 +258,18 @@ void UpdateLoop()
 		if (activeCon) //CHECKPOINT ok also hab das geschrieben weil ich dachte auf active con mit anderen thread zu schreiben während hier rennt macht proboeme mit deinitialisierung oder so jedenfalls villeicht activecon atomic machen baer das wahre problem war akku ist einfach tod gegangen muss gucken dass das registriert und so eigenlich hat program alles richtig gemacht keine crashes und so weiter (nicht viel getestet) nur muss dieses dropdown aktualisiert werden und active zu <none>
 		{
 			//SDL_PumpEvents();
-			if ((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) //checks for activation button be pressed
+			if ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor) && !NoGyroCursor) //checks for activation button be pressed
 			{
+				if (!calibrated && NoReqAcGyrocursor)
+				{
+					Calibration();
+				}
+				isActivation = true;
 				cursorPos.x = screenWidth / 2;
 				cursorPos.y = screenHeight / 2;
 				SetCursorPos(screenWidth / 2, screenHeight / 2);
 				float data[2] = { 0.0f, 0.0f };
-				while ((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000))
+				while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor)
 				{
 					while (macroRunningFuckyouUpdatLoop)
 					{
@@ -275,19 +332,32 @@ void UpdateLoop()
 					// Move the mouse
 					SetCursorPos(cursorPos.x, cursorPos.y);
 
-					if (((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown)
+					if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && !NoLeftClick)
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = true;
 					}
-					else if (wasDown && ((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick)))
+					else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick))))
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = false;
 					}
 				}
+			}
+			isActivation = false;
+			if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && NoReqAcLeftClick && !NoLeftClick)
+			{
+				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+				SendInput(1, inputs, sizeof(INPUT));
+				wasDown = true;
+			}
+			else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick)) && NoReqAcLeftClick))
+			{
+				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+				SendInput(1, inputs, sizeof(INPUT));
+				wasDown = false;
 			}
 		}
 		auto cycleEnd = std::chrono::high_resolution_clock::now();
@@ -595,8 +665,8 @@ void RemapButton(Macro* pMacro)
 	while (SDL_GetTicks() - start_time < timeout_ms) {
 
 		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (true) { //hoffen und beten SDL_WaitEventTimeout(&event, remaining_time)
-
+		if (true)
+		{ //hoffen und beten SDL_WaitEventTimeout(&event, remaining_time)
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
 				(*pMacro).buttonMac = static_cast<SDL_GamepadButton>(event.gbutton.button);
 				std::cout << "Button pressed: " << (*pMacro).buttonMac << " (enum value)\n";

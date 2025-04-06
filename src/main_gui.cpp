@@ -44,6 +44,13 @@ int theListeningOne = -1;
 
 SDL_Event event;
 
+bool NoReqAcGyrocursor = false;
+bool NoReqAcLeftClick = false;
+bool NoReqAcMacro = false; //activation macro
+bool NoGyroCursor = false;
+bool NoLeftClick = false; //neue konvention weil cool irgendwie. der rat der high level bools
+bool NoMacros = false;
+
 // Main code
 int mainRender(int, char**)
 {
@@ -304,7 +311,7 @@ int mainRender(int, char**)
 
 
             ImGui::Begin("Settings", NULL, window_flags);                          // Create a window called "Settings" and append into it.
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
 
 
             ImGui::Text("font size");
@@ -328,7 +335,16 @@ int mainRender(int, char**)
                 }
             }
             ImGui::SameLine();
-            ImGui::Text("no calibration (static text)"); //TODO
+            if (calibrated)
+            {
+                ImGui::Text("calibrated"); //TODO
+            }
+            else
+            {
+                ImGui::Text("not calibrated");
+            }
+
+            
 
             
             if (ImGui::Button("Refresh"))
@@ -468,16 +484,12 @@ int mainRender(int, char**)
                 ImGui::TextUnformatted("<recording>");
             }
 
-            bool a;
-            bool b;
-            bool c;
-
-            ImGui::Checkbox("Do not require activation button for macros", &a); //defaul an
-            ImGui::Checkbox("Do not require activation for gyro cursor", &a); //default off
-            ImGui::Checkbox("Do not require activation left clicking", &a); //default off
-            ImGui::Checkbox("disable left clicking", &a); //default off
-            ImGui::Checkbox("disable gyro cursor", &a); //default off
-            ImGui::Checkbox("disable macros", &a); //default off
+            ImGui::Checkbox("Do not require activation button for macros", &NoReqAcMacro); //defaul an ne doch nicht
+            //uncoooment if you want this setting but cant reccommend it nur probleme weil dann mouse blockiert und wenn gyro nicht richtig klaoppt doof ImGui::Checkbox("Do not require activation for gyro cursor", &NoReqAcGyrocursor); //default off muss immernoch calibration static text fixxen aber ez einfach if svgx nicht 0 oder überhaupt initialisiert dann soll da stehen cablibrated
+            ImGui::Checkbox("Do not require activation left clicking", &NoReqAcLeftClick); //default off
+            ImGui::Checkbox("disable left clicking", &NoLeftClick); //default off
+            ImGui::Checkbox("disable gyro cursor", &NoGyroCursor); //default off
+            ImGui::Checkbox("disable macros", &NoMacros); //default off
 
             
             ImGui::End();
