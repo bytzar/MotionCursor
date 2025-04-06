@@ -76,6 +76,7 @@ extern bool NoGyroCursor;
 extern bool NoLeftClick; //neue konvention weil cool irgendwie. der rat der high level bools
 extern bool NoMacros;
 
+extern bool checkMacrosbool;
 extern std::thread runCheckMacros;
 extern std::thread runUpdateLoop;
 
@@ -86,6 +87,8 @@ extern SDL_GamepadAxis axisActivator;
 extern SDL_GamepadAxis axisClick;
 extern bool triggerAct;
 extern bool triggerClick;
+
+extern std::atomic<bool> update;
 
 extern int theListeningOne;
 

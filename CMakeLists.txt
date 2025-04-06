@@ -56,3 +56,10 @@ add_custom_command(TARGET MotionCursor POST_BUILD
         "$<TARGET_FILE:SDL3::SDL3>"
         "$<TARGET_FILE_DIR:MotionCursor>"
 )
+
+# Set WIN32_EXECUTABLE for Release builds
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set_target_properties(MotionCursor PROPERTIES
+        WIN32_EXECUTABLE TRUE
+    )
+endif()

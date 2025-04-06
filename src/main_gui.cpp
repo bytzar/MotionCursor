@@ -526,13 +526,6 @@ int mainRender(int, char**)
 
     // Cleanup
     // [If using SDL_MAIN_USE_CALLBACKS: all code below would likely be your SDL_AppQuit() function]
-    ImGui_ImplSDLRenderer3_Shutdown();
-    ImGui_ImplSDL3_Shutdown();
-    ImGui::DestroyContext();
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
 
     std::ofstream file("MotionCursor.ini");
 
@@ -599,15 +592,24 @@ int mainRender(int, char**)
     {
         runRecordMacro.join();
     }
-    if (runCheckMacros.joinable())
-    {
-        runCheckMacros.join();
-    }
     if (runUpdateLoop.joinable())
     {
+        update = false;
         runUpdateLoop.join();
     }
+    if (runCheckMacros.joinable())
+    {
+        checkMacrosbool = false;
+        runCheckMacros.join();
+    }
 
+    ImGui_ImplSDLRenderer3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
 
     return 0;

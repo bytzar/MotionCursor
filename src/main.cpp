@@ -1,4 +1,9 @@
 #pragma once
+#ifndef _DEBUG
+
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+
+#endif
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_sensor.h>
 #include <iostream>
@@ -10,6 +15,7 @@
 
 //TODO setting: Enable clicking even when motion activation is off
 //update only every 1s/datarate
+
 
 
 
@@ -541,6 +547,7 @@ int main() //soon to be int init()
 	//std::thread guirenderer(mainRender, NULL, nullptr);
 	//runUpdateLoop = std::thread(UpdateLoop);
     //Calibration();
+	return 0;
 	//UpdateLoop(); //ohne diese line ist prgram fert also main thread ist fertig deswegn crashen alle anderen threads einfach. kein problem wenn ich aus main einfach nur noch init methode mace
 }
 HHOOK mouseHook = NULL;  // Hook handle
