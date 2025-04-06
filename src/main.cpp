@@ -402,7 +402,7 @@ void UpdateConList()
 		runCheckMacros.join();
 	}
 	checkMacrosbool = true;
-	SDL_Delay(200); //if refresh has issues 50% of the time WHAT DA FUCK; this line is only needed, now get this, when the conroller id is EVEN! WHY?! been looking for a race condition this wole time this is so stupid wasted my day. why would the evenness of an id matter its so stupid. its probably something else and the evenness is just a sympton 
+	SDL_Delay(500); //if refresh has issues 50% of the time WHAT DA FUCK; this line is only needed, now get this, when the conroller id is EVEN! WHY?! been looking for a race condition this wole time this is so stupid wasted my day. why would the evenness of an id matter its so stupid. its probably something else and the evenness is just a sympton 
 
 
 	std::cout << "\ni am cout";
@@ -488,6 +488,52 @@ void UpdateConList()
 
 int main() //soon to be int init()
 {
+	if (std::ifstream("MotionCursor.ini"))
+	{
+		std::ifstream file("MotionCursor.ini");
+		
+		int temporus;
+
+		file >> fontSize;
+		file >> avgDriftX;
+		file >> avgDriftY;
+		file >> sensitivity;
+
+		file >> temporus;
+		buttonActivator = static_cast<SDL_GamepadButton>(temporus);
+
+		file >> temporus;
+		buttonClick = static_cast<SDL_GamepadButton>(temporus);
+
+		file >> temporus;
+		axisActivator = static_cast<SDL_GamepadAxis>(temporus);
+
+		file >> temporus;
+		axisClick = static_cast<SDL_GamepadAxis>(temporus);
+
+		file >> triggerAct;
+		file >> triggerClick;
+		file >> NoReqAcMacro;
+		file >> NoReqAcLeftClick;
+		file >> NoLeftClick;
+		file >> NoGyroCursor;
+		file >> NoMacros;
+
+		Macro mac;
+
+		while (
+			file >> temporus &&
+			(mac.buttonMac = static_cast<SDL_GamepadButton>(temporus), true) &&
+			file >> temporus &&
+			(mac.axisMac = static_cast<SDL_GamepadAxis>(temporus), true) &&
+			file >> mac.triggerMacro &&
+			file >> mac.cursorX &&
+			file >> mac.cursorY &&
+			file >> mac.buttonLable
+			) {
+			macros.push_back(mac);
+		}
+	}
 	//SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 	//UpdateConList();
@@ -507,6 +553,8 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
 		Macro mac;
 		mac.cursorX = mouseInfo->pt.x;
 		mac.cursorY = mouseInfo->pt.y;
+		mac.buttonLable = "0"; //neu delee fo broke
+		mac.triggerMacro = false;
 		macros.push_back(mac);
 
 		// Stop listening after the first click

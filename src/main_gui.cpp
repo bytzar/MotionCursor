@@ -50,7 +50,7 @@ bool NoReqAcMacro = false; //activation macro
 bool NoGyroCursor = false;
 bool NoLeftClick = false; //neue konvention weil cool irgendwie. der rat der high level bools
 bool NoMacros = false;
-
+float fontSize = 2.0f;
 // Main code
 int mainRender(int, char**)
 {
@@ -132,7 +132,6 @@ int mainRender(int, char**)
     io.IniFilename = nullptr;
     EMSCRIPTEN_MAINLOOP_BEGIN
 #else
-    static float fontSize = 2.0f;
     const int targetFPS = 15;
     const std::chrono::milliseconds frameDuration(1000 / targetFPS);
     while (!done)
@@ -150,9 +149,15 @@ int mainRender(int, char**)
             //SDL_PumpEvents(); //sdl pollevent macht schon brauch ich nicht noch explicit. damals hatte ich ncith pollevent da musste ich rufen
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
+            {
                 done = true;
+            }
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
+            {
                 done = true;
+                
+            }
+
         }
 
         // [If using SDL_MAIN_USE_CALLBACKS: all code below would likely be your SDL_AppIterate() function]
@@ -272,7 +277,7 @@ int mainRender(int, char**)
                 str = macros[i].buttonLable;
                 if (!listening || i != theListeningOne)
                 {
-                    ImGui::TextUnformatted((!str._Equal("") ? str.c_str() : "<none>"));
+                    ImGui::TextUnformatted((!str._Equal("0") ? str.c_str() : "<none>"));
                 }
                 else
                 {
@@ -528,6 +533,82 @@ int mainRender(int, char**)
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    std::ofstream file("MotionCursor.ini");
+
+    file << fontSize << "\n";
+    file << avgDriftX << "\n";
+    file << avgDriftY << "\n";
+    file << sensitivity << "\n";
+    file << buttonActivator << "\n";
+    file << buttonClick << "\n";
+    file << axisActivator << "\n";
+    file << axisClick << "\n";
+    file << triggerAct << "\n";
+    file << triggerClick << "\n";
+    file << NoReqAcMacro << "\n";
+    file << NoReqAcLeftClick << "\n";
+    file << NoLeftClick << "\n";
+    file << NoGyroCursor << "\n";
+    file << NoMacros;
+
+    for (int i = 0; i < macros.size(); i++)
+    {
+        file << "\n";
+        file << macros[i].buttonMac << "\n";
+        file << macros[i].axisMac << "\n";
+        file << macros[i].triggerMacro << "\n";
+        file << macros[i].cursorX << "\n";
+        file << macros[i].cursorY << "\n";
+        file << macros[i].buttonLable; //if button lable nichts dann buttonlable = "" wichtig
+    }
+
+    file.close();
+
+        
+
+    if (runCal.joinable())
+    {
+        runCal.join();
+    }
+    if (runUpdateCon.joinable())
+    {
+        runUpdateCon.join();
+    }
+    if (runUpdateConList.joinable())
+    {
+        runUpdateConList.join();
+    }
+    if (runRemapAct.joinable())
+    {
+        runRemapAct.join();
+    }
+    if (runRemapClick.joinable())
+    {
+        runRemapClick.join();
+    }
+    if (runRemapMacro.joinable())
+    {
+        runRemapMacro.join();
+    }
+    if (runPreviewMacro.joinable())
+    {
+        runPreviewMacro.join();
+    }
+    if (runRecordMacro.joinable())
+    {
+        runRecordMacro.join();
+    }
+    if (runCheckMacros.joinable())
+    {
+        runCheckMacros.join();
+    }
+    if (runUpdateLoop.joinable())
+    {
+        runUpdateLoop.join();
+    }
+
+
 
     return 0;
 }

@@ -4,6 +4,7 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <fstream>
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 int mainRender(int, char**);
@@ -35,6 +36,8 @@ extern std::vector<int> macrosX;
 extern std::vector<int> macrosY;
 extern SDL_Gamepad* activeCon;
 
+extern float avgDriftX;
+extern float avgDriftY;
 
 class Macro
 {
@@ -73,8 +76,18 @@ extern bool NoGyroCursor;
 extern bool NoLeftClick; //neue konvention weil cool irgendwie. der rat der high level bools
 extern bool NoMacros;
 
+extern std::thread runCheckMacros;
+extern std::thread runUpdateLoop;
 
 
+extern SDL_GamepadButton buttonActivator; //default, settings in date ini machen aber gucken ka
+extern SDL_GamepadButton buttonClick;
+extern SDL_GamepadAxis axisActivator;
+extern SDL_GamepadAxis axisClick;
+extern bool triggerAct;
+extern bool triggerClick;
 
 extern int theListeningOne;
+
+extern float fontSize;
 //EXTERN NICHT VERGESSEN aq
