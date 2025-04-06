@@ -1,14 +1,11 @@
 #pragma once
-#ifndef _DEBUG
 
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 
-#endif
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_sensor.h>
 #include <iostream>
 #include <cmath>
-#include <Windows.h>
 #include <numeric>
 #include "main_gui.h"
 
@@ -109,6 +106,7 @@ bool isPressedMain(Macro* pMakro, SDL_Event pEvent) //zurück in klasse, hatte ni
 	return (*pMakro).isDown; //warum wid manchmal doppelt recorded?
 }
 
+/*
 void isSelftContraned() //isSelftContraned
 {
 	SDL_Event event;
@@ -150,21 +148,24 @@ void isSelftContraned() //isSelftContraned
 		}
 	}
 
-}
+}*/
 
 void CheckMacros() //CheckMacros
 {
 	//const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate)); und schießen muss funktionieren und console muss weg DAS HIER ALS NÄCHSTES OPTIMIZATION; DANN SAVE SETTINGS ODER NE DAVOR NOCH	DIESE CHECKBOXEN NE DAVOR NOCH DAS MAN MACROS LÖSCHEN KANN UND INPUT RESET UND DANN DEN DEBUG KNOPF SCHÖN ZU NEM RECORD MACRO KNOPF MACHEN
-	const int targetFPS = 100;
-	const std::chrono::milliseconds frameDuration4(1000 / targetFPS);
 	while (checkMacrosbool) //terminiert einfach
 	{
-		auto frameStart4 = std::chrono::high_resolution_clock::now();
-		if (true) //ey kein bock mehr so wetten beim löschen ich mach was kaputt so scheiß drauf einfach da lassen
+		const int targetFPS = 100;
+		const std::chrono::milliseconds frameDuration4(1000 / targetFPS);
+		while (!huhrensohnmacro.empty() && checkMacrosbool) //ey kein bock mehr so wetten beim löschen ich mach was kaputt so scheiß drauf einfach da lassen
 		{
+			SDL_PumpEvents();
+			auto frameStart4 = std::chrono::high_resolution_clock::now();
+			SDL_Event ichkotzimkreis = huhrensohnmacro.front();
+			huhrensohnmacro.erase(huhrensohnmacro.begin());
 			//auto cycleStart = std::chrono::high_resolution_clock::now();
 			//std::cout << "\ni am verbose";
-			if (SDL_WaitEvent(&event))
+			if (true) //SDL_WaitEvent(&event) //JUMPFIND
 			{
 				if ((isActivation || NoReqAcMacro) && !NoMacros)
 				{
@@ -176,9 +177,9 @@ void CheckMacros() //CheckMacros
 							if (!macros[i].isDown)
 							{
 								std::cout << "\ni am super DUPER verbose";
-								if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && !macros[i].triggerMacro)
+								if (ichkotzimkreis.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && !macros[i].triggerMacro)
 								{
-									if (macros[i].buttonMac == static_cast<SDL_GamepadButton>(event.gbutton.button))
+									if (macros[i].buttonMac == static_cast<SDL_GamepadButton>(ichkotzimkreis.gbutton.button))
 									{
 										std::cout << "\ni am mega verbose";
 										//macros[i].isDown = true;
@@ -189,11 +190,11 @@ void CheckMacros() //CheckMacros
 										macroRunningFuckyouUpdatLoop = false;
 									}
 								}
-								else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && macros[i].triggerMacro)
+								else if (ichkotzimkreis.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && macros[i].triggerMacro)
 								{
-									if (event.gaxis.axis == macros[i].axisMac)
+									if (ichkotzimkreis.gaxis.axis == macros[i].axisMac)
 									{
-										if (event.gaxis.value > 16000)
+										if (ichkotzimkreis.gaxis.value > 16000)
 										{
 											macroRunningFuckyouUpdatLoop = true;
 											SDL_Delay(20);
@@ -208,13 +209,14 @@ void CheckMacros() //CheckMacros
 					}
 				}
 			}
-		}
-		auto frameEnd4 = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float, std::milli> elapsed4 = frameEnd4 - frameStart4;
+			auto frameEnd4 = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<float, std::milli> elapsed4 = frameEnd4 - frameStart4;
 
-		if (elapsed4 < frameDuration4) {
-			std::this_thread::sleep_for(frameDuration4 - elapsed4);
+			if (elapsed4 < frameDuration4) {
+				std::this_thread::sleep_for(frameDuration4 - elapsed4);
+			}
 		}
+
 		 //CUURR das funktioniert nicht mit datarate ohne ist aber zu krass villeicht in update loop reinintigrieren ne nenenene problem ist das inputs nicht gecatched werden?
 	}
 
@@ -275,13 +277,15 @@ void UpdateLoop()
 				cursorPos.y = screenHeight / 2;
 				SetCursorPos(screenWidth / 2, screenHeight / 2);
 				float data[2] = { 0.0f, 0.0f };
+				const std::chrono::microseconds cycleDurationU(1'000'000 / 200);
 				while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor)
 				{
+					auto cycleStartU = std::chrono::high_resolution_clock::now();
 					while (macroRunningFuckyouUpdatLoop)
 					{
 						//trap the update thread without killing it because otherwise bug
 					}
-					SDL_PumpEvents(); //sonst nicht smooth
+					SDL_PumpEvents(); //sonst nicht smooth JUMPFIND
 
 					SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2);
 
@@ -350,16 +354,28 @@ void UpdateLoop()
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = false;
 					}
+					auto cycleEndU = std::chrono::high_resolution_clock::now();
+					auto elapsedU = std::chrono::duration_cast<std::chrono::microseconds>(cycleEndU - cycleStartU);
+
+					// Sleep for the remaining time in the 5ms cycle
+					if (elapsedU < cycleDurationU) {
+						std::this_thread::sleep_for(cycleDurationU - elapsedU);
+					}
+					else {
+						// (Optional) Handle overrun here
+						std::cout << "unicode Cycle took too long! Dropping behind..." << std::endl;
+					}
 				}
 			}
 			isActivation = false;
+			SDL_PumpEvents();
 			if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && NoReqAcLeftClick && !NoLeftClick)
 			{
 				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 				SendInput(1, inputs, sizeof(INPUT));
 				wasDown = true;
 			}
-			else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick)) && NoReqAcLeftClick))
+			else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick))) && NoReqAcLeftClick)
 			{
 				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 				SendInput(1, inputs, sizeof(INPUT));

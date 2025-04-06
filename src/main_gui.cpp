@@ -43,6 +43,7 @@ float sensitivity = 1;
 int theListeningOne = -1;
 
 SDL_Event event;
+std::vector<SDL_Event> huhrensohnmacro;
 
 bool NoReqAcGyrocursor = false;
 bool NoReqAcLeftClick = false;
@@ -147,6 +148,13 @@ int mainRender(int, char**)
         while (SDL_PollEvent(&event)) //Diesen code villeciht in den 200ms block reintun!!!!WAIT HALLO GUCK HIER DASD KÖNNTE ES`SEINEINFACH DAS GLIBAL aber nur efso 15 mal die selkunde9ßitjgjfkr49jgjq+000004ßwjr ölk
         {//warte das ist magic code. der lloopt einfach hier alleine ohne fick auf 15ms zu geben. hier mach ich alles joker lets go wieder glück gehabt
             //SDL_PumpEvents(); //sdl pollevent macht schon brauch ich nicht noch explicit. damals hatte ich ncith pollevent da musste ich rufen
+
+                if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
+                {
+                    huhrensohnmacro.push_back(event);
+                }
+            
+            
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
             {
@@ -296,7 +304,7 @@ int mainRender(int, char**)
                     }
                     macros[i].buttonMac = static_cast<SDL_GamepadButton>(-1);
                     macros[i].triggerMacro = false;
-                    macros[i].buttonLable = "";
+                    macros[i].buttonLable = "0";
                 }
                 
 

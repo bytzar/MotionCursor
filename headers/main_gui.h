@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 #include <fstream>
+#include <Windows.h>
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 int mainRender(int, char**);
@@ -93,4 +94,6 @@ extern std::atomic<bool> update;
 extern int theListeningOne;
 
 extern float fontSize;
+
+extern std::vector<SDL_Event> huhrensohnmacro;
 //EXTERN NICHT VERGESSEN aq

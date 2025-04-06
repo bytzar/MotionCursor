@@ -56,7 +56,3 @@ add_custom_command(TARGET MotionCursor POST_BUILD
         "$<TARGET_FILE:SDL3::SDL3>"
         "$<TARGET_FILE_DIR:MotionCursor>"
 )
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
-endif()
