@@ -1,5 +1,5 @@
 # MotionCursor
-This program maps gyro inputs from an SDL3 supported controller to the Windows cursor, as well as the EAST button to left click. The intended usage is for QoL Splatoon on CEMU, enabling you to sit back and relax, without the need to jankily lift your hand to reach for your mouse in order to superjump every death (it bugged me crazy). Now you wont need to take your hands of your controler mid match.
+This program maps gyro inputs from an SDL3 supported controller to the Windows cursor, as well as the EAST button to left click. The intended usage is for QoL Splatoon on CEMU, enabling you to sit back and relax, without the need to jankily lift your hand to reach for your mouse in order to superjump every death (it bugged me crazy). Now you wont need to take your hands of your controler mid match. Cemu has now, on my release day, beat me to the punch by releasing a graphics pack mapping the dpad to superjumping ALTHOUGH I assume you cannot use it to jump to beacons so I've still got one up on them. Additionaly, thinking of Twilight princess HD, you could make a macro for the wolf human quick transform on the gamepad so I suppose I have 2+ up on cemu.
 
 Other CEMU or 3DS games even may profit from this as well. Say Wind Waker for example. Sure, you still have to pause, but this is still way directer than navigating that inventory with sticks.
 This may have some extended use cases for laptops plugged into TVs for example, so you needn't get up or have keyboard and mice next to you.
@@ -7,13 +7,15 @@ It may even serve accesibility purposes. Should there be such need reach out so 
 
 # Usage
 - Download latest release
-- Unzip
-- Place your controller on a flat surface
-- Run the MotionCursor.exe
-- Wait for calibration to finsish
-- Ensure the screenshot button is mapped to show gamepad view in cemu
-- Ensure the toggle checkbox is not checked
-- Ensure you don't have the gamepad and TV screen displayed at the same time
+- Unzip entire folder
+- run 'MotionCursor.exe'
+- It should automatically detect your controller, if it was connected before launch
+- if not, click refresh to refresh controller list
+- place your controller ona flat surface, and hit calibrate if expiriencing gyro drift
+- remap the activation button to your liking
+- when held down gyro mapping to cursor is active
+- for macro, hit record, click anywhere on the screen. the coordinates will be saved
+- under macros tap set a custom button for activating the macro
 
 - Hold down the Screenshot button to activate functionality. Once release functionality is disabled, allowing your cursor to hide. Once reactivated it centers the cursor before moving it.
 
@@ -34,16 +36,4 @@ Have CMake installed.
 
 # Roadmap
 
-- Customizeable input mapping
-- Toggle Support
-- GUI
-- Improved calibration
-- Fail saves
-- More options
-- Multi monitor support
-- Multi controller support
-- Mapping home button to ctrl + Tap (Enables having both hold and toggle for Gamepadview. Useful for Splatoon where you may need toggle functionality in queue but hold mid match.)
-- Record cursor position to shortcut frequent actions (e.g. map super jump to dpad)
-- Right stick for percise cursor adjustments
-- Proper exit
-- Polish (refractoring, clean up, etc.)
+Im done with this, lost my mind!
