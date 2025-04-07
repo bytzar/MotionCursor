@@ -49,7 +49,7 @@ std::vector<Macro> macros;
 
 std::thread runCheckMacros;
 
-bool checkMacrosbool = true;
+volatile bool checkMacrosbool = true;
 volatile bool macroRunningFuckyouUpdatLoop = false;
 
 int dataRate = 200;
@@ -159,7 +159,7 @@ void CheckMacros() //CheckMacros
 		const std::chrono::milliseconds frameDuration4(1000 / targetFPS);
 		while (!huhrensohnmacro.empty() && checkMacrosbool) //ey kein bock mehr so wetten beim löschen ich mach was kaputt so scheiß drauf einfach da lassen
 		{
-			SDL_PumpEvents();
+			//SDL_PumpEvents(); hilft nicht. curr: alles klappt in debug glaub ich aber realease brokey
 			auto frameStart4 = std::chrono::high_resolution_clock::now();
 			SDL_Event ichkotzimkreis = huhrensohnmacro.front();
 			huhrensohnmacro.erase(huhrensohnmacro.begin());
@@ -310,8 +310,8 @@ void UpdateLoop()
 					int nuhull = 1;
 					if (data[0] < 0) { nuhull = -1; }
 
-					float MaxGyroForComforty = 125.0f / sensitivity;
-					float MaxGyroForComfortx = 125.0f / sensitivity;
+					float MaxGyroForComforty = 30.0f / sensitivity;
+					float MaxGyroForComfortx = 30.0f / sensitivity;
 
 					if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
 					if (data[1] < -MaxGyroForComforty) { data[1] = -MaxGyroForComforty; }
@@ -519,6 +519,12 @@ int main() //soon to be int init()
 		file >> fontSize;
 		file >> avgDriftX;
 		file >> avgDriftY;
+
+		if (avgDriftX != 0 && avgDriftY != 0)
+		{
+			calibrated = true;
+		}
+
 		file >> sensitivity;
 
 		file >> temporus;

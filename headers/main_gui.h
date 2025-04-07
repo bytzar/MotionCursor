@@ -77,7 +77,7 @@ extern bool NoGyroCursor;
 extern bool NoLeftClick; //neue konvention weil cool irgendwie. der rat der high level bools
 extern bool NoMacros;
 
-extern bool checkMacrosbool;
+extern volatile bool checkMacrosbool;
 extern std::thread runCheckMacros;
 extern std::thread runUpdateLoop;
 
