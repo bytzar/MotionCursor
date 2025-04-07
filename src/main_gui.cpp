@@ -43,7 +43,7 @@ float sensitivity = 1;
 int theListeningOne = -1;
 
 SDL_Event event;
-std::vector<SDL_Event> huhrensohnmacro;
+std::vector<SDL_Event> huhrensohnmacro; //listen for left shoulder crahses, left shoulderbutton isnt lable inported correctly, nummer reinwerfen und dann von sdl lable holen besser
 
 bool NoReqAcGyrocursor = false;
 bool NoReqAcLeftClick = false;
@@ -52,6 +52,7 @@ bool NoGyroCursor = false;
 bool NoLeftClick = false; //neue konvention weil cool irgendwie. der rat der high level bools
 bool NoMacros = false;
 float fontSize = 2.0f;
+std::mutex macroMutex;
 // Main code
 int mainRender(int, char**)
 {
@@ -151,6 +152,7 @@ int mainRender(int, char**)
 
                 if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
                 {
+                    std::lock_guard<std::mutex> lock(macroMutex);
                     huhrensohnmacro.push_back(event);
                 }
             
@@ -561,7 +563,8 @@ int mainRender(int, char**)
         file << macros[i].triggerMacro << "\n";
         file << macros[i].cursorX << "\n";
         file << macros[i].cursorY << "\n";
-        file << macros[i].buttonLable; //if button lable nichts dann buttonlable = "" wichtig
+        int lable = (macros[i].triggerMacro ? macros[i].axisMac : macros[i].buttonMac);
+        file << lable; //if button lable nichts dann buttonlable = "" wichtig
     }
 
     file.close();

@@ -153,16 +153,18 @@ void isSelftContraned() //isSelftContraned
 void CheckMacros() //CheckMacros
 {
 	//const std::chrono::microseconds cycleDuration2(1'000'000 / (dataRate)); und schießen muss funktionieren und console muss weg DAS HIER ALS NÄCHSTES OPTIMIZATION; DANN SAVE SETTINGS ODER NE DAVOR NOCH	DIESE CHECKBOXEN NE DAVOR NOCH DAS MAN MACROS LÖSCHEN KANN UND INPUT RESET UND DANN DEN DEBUG KNOPF SCHÖN ZU NEM RECORD MACRO KNOPF MACHEN
+	const int targetFPS = 100;
+	const std::chrono::milliseconds frameDuration4(1000 / targetFPS);
 	while (checkMacrosbool) //terminiert einfach
 	{
-		const int targetFPS = 100;
-		const std::chrono::milliseconds frameDuration4(1000 / targetFPS);
-		while (!huhrensohnmacro.empty() && checkMacrosbool) //ey kein bock mehr so wetten beim löschen ich mach was kaputt so scheiß drauf einfach da lassen
+		auto frameStart4 = std::chrono::high_resolution_clock::now();
+		std::lock_guard<std::mutex> lock(macroMutex);
+		if (huhrensohnmacro.empty()) continue; //ey kein bock mehr so wetten beim löschen ich mach was kaputt so scheiß drauf einfach da lassen
 		{
 			//SDL_PumpEvents(); hilft nicht. curr: alles klappt in debug glaub ich aber realease brokey
-			auto frameStart4 = std::chrono::high_resolution_clock::now();
+			
 			SDL_Event ichkotzimkreis = huhrensohnmacro.front();
-			huhrensohnmacro.erase(huhrensohnmacro.begin());
+			huhrensohnmacro.erase(huhrensohnmacro.begin()); //jumpfind
 			//auto cycleStart = std::chrono::high_resolution_clock::now();
 			//std::cout << "\ni am verbose";
 			if (true) //SDL_WaitEvent(&event) //JUMPFIND
@@ -209,12 +211,13 @@ void CheckMacros() //CheckMacros
 					}
 				}
 			}
-			auto frameEnd4 = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<float, std::milli> elapsed4 = frameEnd4 - frameStart4;
+			
+		}
+		auto frameEnd4 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float, std::milli> elapsed4 = frameEnd4 - frameStart4;
 
-			if (elapsed4 < frameDuration4) {
-				std::this_thread::sleep_for(frameDuration4 - elapsed4);
-			}
+		if (elapsed4 < frameDuration4) {
+			std::this_thread::sleep_for(frameDuration4 - elapsed4);
 		}
 
 		 //CUURR das funktioniert nicht mit datarate ohne ist aber zu krass villeicht in update loop reinintigrieren ne nenenene problem ist das inputs nicht gecatched werden?
@@ -548,6 +551,7 @@ int main() //soon to be int init()
 		file >> NoMacros;
 
 		Macro mac;
+		int lable;
 
 		while (
 			file >> temporus &&
@@ -557,8 +561,17 @@ int main() //soon to be int init()
 			file >> mac.triggerMacro &&
 			file >> mac.cursorX &&
 			file >> mac.cursorY &&
-			file >> mac.buttonLable
-			) {
+			file >> lable 
+			)
+		{
+			mac.buttonLable = (lable == -1)
+				? "0"
+				: (
+					mac.triggerMacro
+					? SDL_GetGamepadStringForAxis(static_cast<SDL_GamepadAxis>(lable))
+					: SDL_GetGamepadStringForButton(static_cast<SDL_GamepadButton>(lable))
+					);
+
 			macros.push_back(mac);
 		}
 	}
@@ -677,7 +690,7 @@ void RemapActivator()
 					if (event.gaxis.value > 16000) {
 						axisActivator = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
 						triggerAct = true;
-						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger";
+						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger";
 						std::cout << triggerName << " pressed.\n";
 						break;
 					}
@@ -717,7 +730,7 @@ void RemapClick()
 					if (event.gaxis.value > 16000) {
 						axisClick = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
 						triggerClick = true;
-						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger";
+						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger";
 						std::cout << triggerName << " pressed.\n";
 						break;
 					}
@@ -756,7 +769,7 @@ void RemapButton(Macro* pMacro)
 					if (event.gaxis.value > 16000) {
 						(*pMacro).axisMac = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
 						(*pMacro).triggerMacro = true;
-						(*pMacro).buttonLable = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger";
+						(*pMacro).buttonLable = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger";
 						std::cout << (*pMacro).buttonLable << " pressed.\n";
 						break;
 					}

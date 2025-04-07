@@ -6,6 +6,7 @@
 #include <chrono>
 #include <fstream>
 #include <Windows.h>
+#include <mutex>
 #define SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS" = 1
 
 int mainRender(int, char**);
@@ -96,4 +97,6 @@ extern int theListeningOne;
 extern float fontSize;
 
 extern std::vector<SDL_Event> huhrensohnmacro;
+extern std::mutex macroMutex;
+
 //EXTERN NICHT VERGESSEN aq
