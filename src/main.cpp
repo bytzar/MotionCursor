@@ -402,10 +402,32 @@ void UpdateLoop()
 
 
 
-void UpdateCon(int pActiveConId)
+void UpdateCon(int pActiveConId) //muss sensor aktivieren
 {
 	activeCon = SDL_OpenGamepad(pActiveConId); //brauche kem nicht einfach id plus 1, problem weil wir nur chars array rüber schicken aber mit reconnect und disconnect ich muss mit einher auch die kem ids schicken array mit zwei datentypen? oder... ne einfach noch ein array aber aus ints und einfach die kem werte in der richtigen reihenfolge. ungenutzte kems werden sowieso von sdl einfach geskiptt ja ok ez muss aber global lol so schlecht konvention
 	std::cout << "\nupdate con thread deactive ";
+	SDL_SensorType type = SDL_SENSOR_GYRO;
+	bool cem = SDL_GamepadHasSensor(activeCon, type); //add gyro joycon support
+	std::cout << "\n\n\n" << cem;
+
+	bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
+	std::cout << "\n isenab " << isenab;
+	if (!isenab)
+	{
+		bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+		std::cout << "\n isenab now " << sen;
+	}
+
+
+	float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
+	dataRate = (int)rete;
+	std::cout << "\n" << rete << "\n ";
+
+
+	if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
+		std::cerr << "Gyroscope failed to enable!" << std::endl;
+		//return;
+	}
 }
 
 
@@ -481,28 +503,7 @@ void UpdateConList()
 
 		//std::cout << tf << " " << activeCon;
 
-		SDL_SensorType type = SDL_SENSOR_GYRO;
-		bool cem = SDL_GamepadHasSensor(activeCon, type); //add gyro joycon support
-		std::cout << "\n\n\n" << cem;
-
-		bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
-		std::cout << "\n isenab " << isenab;
-		if (!isenab)
-		{
-			bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
-			std::cout << "\n isenab now " << sen;
-		}
 		
-
-		float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
-		dataRate = (int) rete;
-		std::cout << "\n" << rete << "\n ";
-
-
-		if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
-			std::cerr << "Gyroscope failed to enable!" << std::endl;
-			//return;
-		}
 		update = true;
 		runUpdateLoop = std::thread(UpdateLoop);
 		std::cout << "\nupdate loop thread aktiv " << runUpdateLoop.get_id();
