@@ -1,3 +1,6 @@
+# Update
+I think I just found out that my implementation of macros makes it UNVIABLE for gaming. fucking great. the gyro plus clicking stuff is still good. and useful as mentioned below. Also good as a general purpose program.
+
 # MotionCursor
 This program maps gyro inputs from an SDL3 supported controller to the Windows cursor, as well as the EAST button to left click. The intended usage is for QoL Splatoon on CEMU, enabling you to sit back and relax, without the need to jankily lift your hand to reach for your mouse in order to superjump every death (it bugged me crazy). Now you wont need to take your hands of your controler mid match. Cemu has now, on my release day, beat me to the punch by releasing a graphics pack mapping the dpad to superjumping ALTHOUGH I assume you cannot use it to jump to beacons so I've still got one up on them. Additionaly, thinking of Twilight princess HD, you could make a macro for the wolf human quick transform on the gamepad so I suppose I have 2+ up on cemu.
 
