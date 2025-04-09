@@ -98,7 +98,7 @@ void UpdateLoop()
 				while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor)
 				{
 					auto cycleStartU = std::chrono::high_resolution_clock::now();
-					SDL_PumpEvents(); //magic code for smoothness. not threadsafe but works
+					SDL_PumpEvents(); //since gyro isnt an event (the while (pollevent) ignores it) and i run ui at a target of 15 fps we need to pump here to have proper 200hz in the update loop even though its not threadsafe but eh
 					SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2); //read delta gyro data and place it in our delta array
 
 					//subtracts drift
