@@ -4,6 +4,11 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" target="_blank">
+    <img src="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" alt="Total downloads">
+  </a>
+</p>
 
 # Update
 Due to issues, macros have been removed from master and the master release which significantly increased performance, stability and consistency. Macros still have a place as a general purpose utility, but not in the context of gaming. The last macro release can be found in release v1.0.
