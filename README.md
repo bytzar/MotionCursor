@@ -1,14 +1,15 @@
 <p align="center">
+  <a href="https://ko-fi.com/baehrei" target="_blank">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com">
+  </a>
+</p>
+
+<p align="center">
   <a href="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" target="_blank">
     <img src="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" alt="Total downloads">
   </a>
 </p>
 
-<p align="center">
-  <a href="https://ko-fi.com/baehrei" target="_blank">
-    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com">
-  </a>
-</p>
 
 # Update
 Due to issues, macros have been removed from master and the master release which significantly increased performance, stability and consistency. Macros still have a place as a general purpose utility, but not in the context of gaming. The last macro release can be found in release v1.0.
