@@ -1,12 +1,12 @@
 <p align="center">
-  <a href="https://ko-fi.com/baehrei" target="_blank">
-    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com">
+  <a href="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" target="_blank">
+    <img src="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" alt="Total downloads">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" target="_blank">
-    <img src="https://img.shields.io/github/downloads/bytzar/MotionCursor/total.svg" alt="Total downloads">
+  <a href="https://ko-fi.com/baehrei" target="_blank">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com">
   </a>
 </p>
 
