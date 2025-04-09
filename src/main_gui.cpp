@@ -18,8 +18,6 @@
 #include <SDL3/SDL.h>
 #include "main_gui.h"
 
-#include <iostream> //temp
-
 
 #ifdef __EMSCRIPTEN__
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
@@ -32,9 +30,6 @@ std::thread runUpdateCon;
 std::thread runUpdateConList;
 std::thread runRemapAct;
 std::thread runRemapClick;
-std::thread runRemapMacro;
-std::thread runPreviewMacro;
-std::thread runRecordMacro;
 
 bool virginCall = true;
 bool first = true;
@@ -42,17 +37,15 @@ ImGuiID dockspace_id;
 float sensitivity = 1;
 int theListeningOne = -1;
 
-SDL_Event event;
-std::vector<SDL_Event> huhrensohnmacro; //listen for left shoulder crahses, left shoulderbutton isnt lable inported correctly, nummer reinwerfen und dann von sdl lable holen besser
 
 bool NoReqAcGyrocursor = false;
 bool NoReqAcLeftClick = false;
-bool NoReqAcMacro = false; //activation macro
 bool NoGyroCursor = false;
-bool NoLeftClick = false; //neue konvention weil cool irgendwie. der rat der high level bools
-bool NoMacros = false;
+bool NoLeftClick = false; 
+bool invX = false;
+bool invY = false;
 float fontSize = 2.0f;
-std::mutex macroMutex;
+SDL_Event event;
 // Main code
 int mainRender(int, char**)
 {
@@ -149,14 +142,6 @@ int mainRender(int, char**)
         while (SDL_PollEvent(&event)) //Diesen code villeciht in den 200ms block reintun!!!!WAIT HALLO GUCK HIER DASD KÖNNTE ES`SEINEINFACH DAS GLIBAL aber nur efso 15 mal die selkunde9ßitjgjfkr49jgjq+000004ßwjr ölk
         {//warte das ist magic code. der lloopt einfach hier alleine ohne fick auf 15ms zu geben. hier mach ich alles joker lets go wieder glück gehabt
             //SDL_PumpEvents(); //sdl pollevent macht schon brauch ich nicht noch explicit. damals hatte ich ncith pollevent da musste ich rufen
-
-                if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
-                {
-                    std::lock_guard<std::mutex> lock(macroMutex);
-                    huhrensohnmacro.push_back(event);
-                }
-            
-            
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT)
             {
@@ -195,10 +180,7 @@ int mainRender(int, char**)
                 ImGui::DockBuilderAddNode(dockspace_id, 0); // Add empty node
                 ImGui::DockBuilderSetNodeSize(dockspace_id, ImVec2(0.45f, 0.55f));
 
-                ImGuiID dock_main_id = dockspace_id; // This variable will track the document node, however we are not using it here as we aren't docking anything into it.
-                //ImGuiID dock_id_prop = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, NULL, &dock_main_id);
-                //ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.20f, NULL, &dock_main_id);
-                ImGui::DockBuilderDockWindow("macros", dock_main_id);
+                ImGuiID dock_main_id = dockspace_id;
                 ImGui::DockBuilderDockWindow("Settings", dock_main_id);
 
                 ImGui::DockBuilderFinish(dockspace_id);
@@ -225,103 +207,6 @@ int mainRender(int, char**)
             window_flags |= ImGuiConfigFlags_ViewportsEnable;
             window_flags |= ImGuiWindowFlags_NoResize;
             window_flags |= ImGuiWindowFlags_NoMove;
-
-
-
-            ImGui::Begin("macros", NULL, window_flags);                          // Create a window called "Settings" and append into it.
-
-            for (int i = 0; i < macros.size(); i++)
-            {
-                std::string str = "remove macro ";
-                str += std::to_string(i);
-                str += " ";
-                char const* pchar = str.c_str();
-                if (ImGui::Button(pchar) && !listening && !listeningClick)
-                {
-                    if (runRemapMacro.joinable())
-                    {
-                        runRemapMacro.join();
-                    }
-                    macros.erase(macros.begin() + i);
-                }
-                ImGui::SameLine();
-                str = "x: ";
-                str += std::to_string(macros[i].cursorX);
-                str += " ";
-                pchar = str.c_str();
-                ImGui::TextUnformatted(pchar);
-                ImGui::SameLine();
-                str = "y: ";
-                str += std::to_string(macros[i].cursorY);
-                pchar = str.c_str();
-                ImGui::TextUnformatted(pchar);
-                ImGui::SameLine();
-                str = "preiew macro ";
-                str += std::to_string(i);
-                pchar = str.c_str();
-                if (ImGui::Button(pchar))
-                {
-                    if (runPreviewMacro.joinable())
-                    {
-                        runPreviewMacro.join();
-                    }
-                    runPreviewMacro = std::thread(ReplayMacro2, &macros[i], true);
-                    //ReplayMacro2(&(macros[i]), true); //main thread weil grad kein bock //MACRO WERDEN VOM UPDATELOOP ÜBERSCHRIEBEN. UPDATELOOP MUSS PAUSIERT WERDEN SONST geht nicht. oder warte hab idee
-                }
-
-                ImGui::SameLine();
-                str = "remap button for macro ";
-                str += std::to_string(i);
-                pchar = str.c_str();
-                if (ImGui::Button(pchar) && !listening)
-                {
-                    theListeningOne = i;
-                    if (runRemapMacro.joinable())
-                    {
-                        runRemapMacro.join();
-                    }
-                    runRemapMacro = std::thread(RemapButton, &macros[i]);
-                    //RemapButton(&(macros[i])); //main thread weil grad kein bock, ah ich glaub ich schick main weg und dann terminiert... oder so ne... wenn funktion terminiert müsste er hier einfach weitermachen
-                }
-                ImGui::SameLine();
-                str = macros[i].buttonLable;
-                if (!listening || i != theListeningOne)
-                {
-                    ImGui::TextUnformatted((!str._Equal("0") ? str.c_str() : "<none>"));
-                }
-                else
-                {
-                    ImGui::TextUnformatted(("<listening>"));
-                }
-                ImGui::SameLine();
-                str = "unmap macro ";
-                str += std::to_string(i);
-                str += " ";
-                pchar = str.c_str();
-                if (ImGui::Button(pchar) && !listening && !listeningClick)
-                {
-                    if (runRemapMacro.joinable())
-                    {
-                        runRemapMacro.join();
-                    }
-                    macros[i].buttonMac = static_cast<SDL_GamepadButton>(-1);
-                    macros[i].triggerMacro = false;
-                    macros[i].buttonLable = "0";
-                }
-                
-
-            }
-
-
-            ImGui::End();
-        }
-        {
-            ImGuiWindowFlags window_flags = 0;
-            window_flags |= ImGuiWindowFlags_NoTitleBar;
-            window_flags |= ImGuiWindowFlags_NoCollapse;
-            window_flags |= ImGuiConfigFlags_ViewportsEnable;
-            window_flags |= ImGuiWindowFlags_NoResize;
-            window_flags |= ImGuiWindowFlags_NoMove;
             
 
 
@@ -331,7 +216,7 @@ int mainRender(int, char**)
 
             ImGui::Text("font size");
             ImGui::SameLine();
-            if (ImGui::Button("Reset"))
+            if (ImGui::Button("reset"))
                 fontSize = 2.0f;
             ImGui::SameLine();
             ImGui::SliderFloat(" ", &fontSize, 1.0f, 5.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
@@ -346,7 +231,6 @@ int mainRender(int, char**)
                         runCal.join();  // Make sure old thread is done
                     }
                     runCal = std::thread(Calibration);
-                    std::cout << "\ncal thread aktiv " << runCal.get_id();
                 }
             }
             ImGui::SameLine();
@@ -371,7 +255,6 @@ int mainRender(int, char**)
                         runUpdateConList.join();
                     }
                     runUpdateConList = std::thread(UpdateConList);
-                    std::cout << "\nupdate list thread aktiv " << runUpdateConList.get_id();
                 }
             }
             ImGui::SameLine();
@@ -411,9 +294,6 @@ int mainRender(int, char**)
                                 runUpdateConList.join();
                             }
                             runUpdateCon = std::thread(UpdateCon, conIds[i]);
-                            std::cout << "\nupdate con thread aktiv " << runUpdateCon.get_id();
-                            //std::thread runUpdateCon(UpdateCon, i); //ob richtig switched ungetestet aber anzunehmen
-                            //runCal = std::thread(UpdateCon, i);
                         }
                         activeConId = i;
                     }
@@ -423,7 +303,7 @@ int mainRender(int, char**)
 
             ImGui::Text("sensitivity multipliyer");
             ImGui::SameLine();
-            if (ImGui::Button("Default"))
+            if (ImGui::Button("default"))
                 sensitivity = 1.0f;
             ImGui::SameLine();
             ImGui::SliderFloat("  ", &sensitivity, 0.001f, 10.0f);
@@ -444,7 +324,7 @@ int mainRender(int, char**)
             {
                 if (triggerAct)
                 {
-                    ImGui::TextUnformatted((axisActivator == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger");
+                    ImGui::TextUnformatted((axisActivator == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger");
                 }
                 else
                 {
@@ -471,7 +351,7 @@ int mainRender(int, char**)
             {
                 if (triggerClick)
                 {
-                    ImGui::TextUnformatted((axisClick == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "Left Trigger" : "Right Trigger");
+                    ImGui::TextUnformatted((axisClick == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger");
                 }
                 else
                 {
@@ -480,31 +360,16 @@ int mainRender(int, char**)
                 }
             }
 
-            
-
-            if (ImGui::Button("record macro"))
-            {
-                if (!listening)
-                {
-                    if (runRecordMacro.joinable())
-                    {
-                        runRecordMacro.join();
-                    }
-                    runRecordMacro = std::thread(RecordMacro);
-                }
-            }
-            if (guiRecordingMacro)
-            {
-                ImGui::SameLine();
-                ImGui::TextUnformatted("<recording>");
-            }
-
-            ImGui::Checkbox("Do not require activation button for macros", &NoReqAcMacro); //defaul an ne doch nicht
             //uncoooment if you want this setting but cant reccommend it nur probleme weil dann mouse blockiert und wenn gyro nicht richtig klaoppt doof ImGui::Checkbox("Do not require activation for gyro cursor", &NoReqAcGyrocursor); //default off muss immernoch calibration static text fixxen aber ez einfach if svgx nicht 0 oder überhaupt initialisiert dann soll da stehen cablibrated
-            ImGui::Checkbox("Do not require activation left clicking", &NoReqAcLeftClick); //default off
+            ImGui::Checkbox("do not require activation left clicking", &NoReqAcLeftClick); //default off
             ImGui::Checkbox("disable left clicking", &NoLeftClick); //default off
             ImGui::Checkbox("disable gyro cursor", &NoGyroCursor); //default off
-            ImGui::Checkbox("disable macros", &NoMacros); //default off
+            ImGui::Checkbox("invert x axis gyro", &invX); //dont save as it shouldnt be needed most times
+            ImGui::Checkbox("invert y axis gyro", &invY); //default off
+            ImGui::TextUnformatted("\ninverting only affects this program");
+            ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs");
+            ImGui::TextUnformatted("for calibration, place your controller on a flat surface and hit calibrate");
+            ImGui::TextUnformatted("multi controller support breaks if you push it");
 
             
             ImGui::End();
@@ -549,23 +414,9 @@ int mainRender(int, char**)
     file << axisClick << "\n";
     file << triggerAct << "\n";
     file << triggerClick << "\n";
-    file << NoReqAcMacro << "\n";
     file << NoReqAcLeftClick << "\n";
     file << NoLeftClick << "\n";
     file << NoGyroCursor << "\n";
-    file << NoMacros;
-
-    for (int i = 0; i < macros.size(); i++)
-    {
-        file << "\n";
-        file << macros[i].buttonMac << "\n";
-        file << macros[i].axisMac << "\n";
-        file << macros[i].triggerMacro << "\n";
-        file << macros[i].cursorX << "\n";
-        file << macros[i].cursorY << "\n";
-        int lable = (macros[i].triggerMacro ? macros[i].axisMac : macros[i].buttonMac);
-        file << lable; //if button lable nichts dann buttonlable = "" wichtig
-    }
 
     file.close();
 
@@ -591,27 +442,10 @@ int mainRender(int, char**)
     {
         runRemapClick.join();
     }
-    if (runRemapMacro.joinable())
-    {
-        runRemapMacro.join();
-    }
-    if (runPreviewMacro.joinable())
-    {
-        runPreviewMacro.join();
-    }
-    if (runRecordMacro.joinable())
-    {
-        runRecordMacro.join();
-    }
     if (runUpdateLoop.joinable())
     {
         update = false;
         runUpdateLoop.join();
-    }
-    if (runCheckMacros.joinable())
-    {
-        checkMacrosbool = false;
-        runCheckMacros.join();
     }
 
     ImGui_ImplSDLRenderer3_Shutdown();
