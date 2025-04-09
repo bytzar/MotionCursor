@@ -1,4 +1,8 @@
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/baehrei)
+<p align="center">
+  <a href="https://ko-fi.com/baehrei" target="_blank">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com">
+  </a>
+</p>
 
 
 # Update
