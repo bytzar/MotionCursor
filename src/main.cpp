@@ -89,7 +89,7 @@ void UpdateLoop()
 			if ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor) && !NoGyroCursor)
 			{
 				isActivation = true;
-				screenWidth = GetSystemMetrics(SM_CXSCREEN);
+				screenWidth = GetSystemMetrics(SM_CXSCREEN); 
 				screenHeight = GetSystemMetrics(SM_CYSCREEN);
 				cursorPos.x = screenWidth / 2; 
 				cursorPos.y = screenHeight / 2;
@@ -121,11 +121,11 @@ void UpdateLoop()
 
 					if (DYNdata[0] > threashold || DYNdata[0] < -threashold) //discard if movement is so minor it is probably drift
 					{
-						data[0] = DYNdata[0]; //+=
+						data[0] += DYNdata[0];
 					}
 					if (DYNdata[1] > threashold || DYNdata[1] < -threashold)
 					{
-						data[1] = DYNdata[1];
+						data[1] += DYNdata[1];
 					}
 
 					//checks if values were negative as calculation calculates in absolutes
@@ -166,13 +166,7 @@ void UpdateLoop()
 					cursorPos.x = -newposx + screenWidth / 2;
 
 					// Move the mouse
-					//SetCursorPos(cursorPos.x, cursorPos.y);
-					INPUT iput = { 0 };
-					iput.type = INPUT_MOUSE;
-					iput.mi.dx = data[1] * sensitivity;
-					iput.mi.dy = data[0] * sensitivity;
-					iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
-					SendInput(1, &iput, sizeof(INPUT));
+					SetCursorPos(cursorPos.x, cursorPos.y);
 
 					//implemented this way to enable hold and drag functiponality
 					if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && !NoLeftClick)
