@@ -11,6 +11,8 @@
 * loslassen damit man vernünftig klicken kann und dann von da wieder weiter oder so ein cursor lock knopf um den kurz still zu halten wahrscheinlich
 * besser weil dann hab ich kein problem mit reset on reset toggle weil villeicht will man so in ein spiel rein und dann wieder resetten nh
 * dese´wegen cursor lock besser
+* irgendeinelösunge dafür finden das self compiler wissen wonach sie suchen müssen. das maingui.h tief in external deps vergraben ist und main und maingui cpp die dateien sind.
+* klar die können nachgucken aber ist nicht sehr intuitiv
 */
 
 #pragma once
@@ -130,7 +132,7 @@ void UpdateLoop()
 						toggleWasDown = true;
 						while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && update)
 						{ 
-							SDL_Delay(200); //wir terminieren nicht wenn angetogglet? allgemeien nicht nur hier
+							SDL_Delay(200);
 						}
 						break;
 					}
