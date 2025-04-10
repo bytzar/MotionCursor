@@ -27,7 +27,6 @@
 int activeConId = 0;
 std::thread runCal;
 std::thread runUpdateCon;
-std::thread runUpdateConList;
 std::thread runRemapAct;
 std::thread runRemapClick;
 
@@ -49,11 +48,7 @@ SDL_Event event;
 // Main code
 int mainRender(int, char**)
 {
-    if (runUpdateConList.joinable()) {
-        runUpdateConList.join();
-    }
-    runUpdateConList = std::thread(UpdateConList);
-
+    UpdateConList();
     // Setup SDL
     // [If using SDL_MAIN_USE_CALLBACKS: all code below until the main loop starts would likely be your SDL_AppInit() function]
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
@@ -251,10 +246,6 @@ int mainRender(int, char**)
                 if (first)
                 {
                     first = false;
-                    /*if (runUpdateConList.joinable()) {
-                        runUpdateConList.join();
-                    }
-                    runUpdateConList = std::thread(UpdateConList);*/
                     UpdateConList();
                 }
             }
@@ -292,9 +283,6 @@ int mainRender(int, char**)
                                 }
                                 if (runUpdateCon.joinable()) {
                                     runUpdateCon.join();  // Make sure old thread is done
-                                }
-                                if (runUpdateConList.joinable()) {
-                                    runUpdateConList.join();
                                 }
                                 runUpdateCon = std::thread(UpdateCon, conIds[i]);
                             }
@@ -434,10 +422,6 @@ int mainRender(int, char**)
     if (runUpdateCon.joinable())
     {
         runUpdateCon.join();
-    }
-    if (runUpdateConList.joinable())
-    {
-        runUpdateConList.join();
     }
     if (runRemapAct.joinable())
     {
