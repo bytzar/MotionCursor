@@ -251,10 +251,11 @@ int mainRender(int, char**)
                 if (first)
                 {
                     first = false;
-                    if (runUpdateConList.joinable()) {
+                    /*if (runUpdateConList.joinable()) {
                         runUpdateConList.join();
                     }
-                    runUpdateConList = std::thread(UpdateConList);
+                    runUpdateConList = std::thread(UpdateConList);*/
+                    UpdateConList();
                 }
             }
             ImGui::SameLine();
@@ -275,29 +276,32 @@ int mainRender(int, char**)
                 ImGui::SeparatorText("Controllers");
                 for (int i = 0; i < controllers.size(); i++)
                 {
-                    std::string str = std::to_string(i);
-                    str += " ";
-                    str += controllers[i];
-                    char const* pchar = str.c_str();
-                    if (ImGui::Selectable(pchar))
+                    if ((controllers[i] && controllers[i][0] != '\0'))
                     {
-                        if (activeConId != i) //ganz kurz
+                        std::string str = std::to_string(i);
+                        str += " ";
+                        str += controllers[i];
+                        char const* pchar = str.c_str();
+                        if (ImGui::Selectable(pchar))
                         {
-                            if (runningCal)
+                            if (activeConId != i) //ganz kurz
                             {
-                                runningCal = false; //muss noch auf thread warten machen ! und update =false damit updateloop nicht rumspackt 
+                                if (runningCal)
+                                {
+                                    runningCal = false; //muss noch auf thread warten machen ! und update =false damit updateloop nicht rumspackt 
+                                }
+                                if (runUpdateCon.joinable()) {
+                                    runUpdateCon.join();  // Make sure old thread is done
+                                }
+                                if (runUpdateConList.joinable()) {
+                                    runUpdateConList.join();
+                                }
+                                runUpdateCon = std::thread(UpdateCon, conIds[i]);
                             }
-                            if (runUpdateCon.joinable()) {
-                                runUpdateCon.join();  // Make sure old thread is done
-                            }
-                            if (runUpdateConList.joinable()) {
-                                runUpdateConList.join();
-                            }
-                            runUpdateCon = std::thread(UpdateCon, conIds[i]);
+                            activeConId = i;
                         }
-                        activeConId = i;
                     }
-                } //falls kaputt klammer weg und indent
+                }
                 ImGui::EndPopup();
             }
 
@@ -366,10 +370,11 @@ int mainRender(int, char**)
             ImGui::Checkbox("disable gyro cursor", &NoGyroCursor); //default off
             ImGui::Checkbox("invert x axis gyro", &invX); //dont save as it shouldnt be needed most times
             ImGui::Checkbox("invert y axis gyro", &invY); //default off
-            ImGui::TextUnformatted("\ninverting only affects this program");
-            ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs");
-            ImGui::TextUnformatted("for calibration, place your controller on a flat surface and hit calibrate");
-            ImGui::TextUnformatted("multi controller support breaks if you push it");
+            ImGui::TextUnformatted("\nfor calibration, place your controller on a flat surface and hit 'calibrate'");
+            ImGui::TextUnformatted("calibration takes less than a second and needs to be redone every controller change");
+            ImGui::TextUnformatted("the last calibration is saved so if you restart and select the same controller no need to recalibrate");
+            ImGui::TextUnformatted("calibrating only affect this program, not the controller");
+            //ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs gucken ob das noch passiert");
 
             
             ImGui::End();

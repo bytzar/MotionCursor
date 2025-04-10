@@ -219,6 +219,7 @@ void UpdateLoop()
 
 void UpdateCon(int pActiveConId) //sets all relevent variable to update the controller
 {
+	calibrated = false;
 	activeCon = SDL_OpenGamepad(pActiveConId);
 	SDL_SensorType type = SDL_SENSOR_GYRO;
 	bool cem = SDL_GamepadHasSensor(activeCon, type);
@@ -241,17 +242,15 @@ void UpdateCon(int pActiveConId) //sets all relevent variable to update the cont
 
 void UpdateConList()
 {
-	
-	if (activeCon) //if controller present. close
-	{
-		SDL_CloseGamepad(activeCon);
-	}
 	update = false;
 	if (runUpdateLoop.joinable())
 	{
 		runUpdateLoop.join();
 	} //terminate and wait fro the update loop thread jsut in case
-	SDL_Delay(500); //if refresh has issues 50% of the time WHAT DA FUCK; this line is only needed, now get this, when the conroller id is EVEN! WHY?! been looking for a race condition this wole time this is so stupid wasted my day. why would the evenness of an id matter its so stupid. its probably something else and the evenness is just a sympton 
+	SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
+	SDL_Delay(500); // give time for OS to clean up device handles
+	SDL_InitSubSystem(SDL_INIT_GAMEPAD);
+	//SDL_Delay(500); //if refresh has issues 50% of the time WHAT DA FUCK; this line is only needed, now get this, when the conroller id is EVEN! WHY?! been looking for a race condition this wole time this is so stupid wasted my day. why would the evenness of an id matter its so stupid. its probably something else and the evenness is just a sympton 
 
 
 	if (SDL_Init(SDL_INIT_SENSOR | SDL_INIT_GAMEPAD) < 0) //Initializes controller and checks for available sensors, also checks for error
@@ -277,6 +276,9 @@ void UpdateConList()
 	//the values can seem arbitrary at times 
 	for (int i = 0; i < countControllers; i++)
 	{
+		if (!SDL_IsGamepad(gem[i])) {
+			continue;
+		}
 		SDL_Gamepad* game = SDL_OpenGamepad(gem[i]);
 		kem = SDL_GetGamepadID(game);
 		conIds[i] = kem;
