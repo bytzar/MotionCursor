@@ -229,9 +229,12 @@ int mainRender(int, char**)
                 }
             }
             ImGui::SameLine();
-            if (calibrated)
+            if (calibrated && !calibratedConName[0] != '\Z') 
             {
-                ImGui::Text("calibrated"); //TODO
+                std::string p = "calibrated for ";
+                std::string c = (calibratedConName);
+                p += c;
+                ImGui::Text(p.c_str()); //TODO
             }
             else
             {
@@ -353,14 +356,15 @@ int mainRender(int, char**)
             }
 
             //uncoooment if you want this setting but cant reccommend it nur probleme weil dann mouse blockiert und wenn gyro nicht richtig klaoppt doof ImGui::Checkbox("Do not require activation for gyro cursor", &NoReqAcGyrocursor); //default off muss immernoch calibration static text fixxen aber ez einfach if svgx nicht 0 oder überhaupt initialisiert dann soll da stehen cablibrated
-            ImGui::Checkbox("do not require activation left clicking", &NoReqAcLeftClick); //default off
+            ImGui::Checkbox("do not require activation left clicking", &NoReqAcLeftClick); //default off 
+            ImGui::Checkbox("toggle gyro cursor", &NoReqAcGyrocursor); //toogle ist besser falls man abgefuckten controller oder abgefuckte calibration hat selbst mit mouse kann man villeicht nicht gegen ankämpfen
             ImGui::Checkbox("disable left clicking", &NoLeftClick); //default off
             ImGui::Checkbox("disable gyro cursor", &NoGyroCursor); //default off
             ImGui::Checkbox("invert x axis gyro", &invX); //dont save as it shouldnt be needed most times
             ImGui::Checkbox("invert y axis gyro", &invY); //default off
             ImGui::TextUnformatted("\nfor calibration, place your controller on a flat surface and hit 'calibrate'");
             ImGui::TextUnformatted("calibration takes less than a second and needs to be redone every controller change");
-            ImGui::TextUnformatted("the last calibration is saved so if you restart and select the same controller no need to recalibrate");
+            ImGui::TextUnformatted("kann ich entfernen wenn da steht calibrated for swithc com zb the last calibration is saved so if you restart and select the same controller no need to recalibrate");
             ImGui::TextUnformatted("calibrating only affect this program, not the controller");
             //ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs gucken ob das noch passiert");
 

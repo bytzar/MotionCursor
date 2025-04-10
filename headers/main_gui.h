@@ -41,6 +41,7 @@ void UpdateLoop();
 extern SDL_Event event; //RUNMOVE
 
 extern bool calibrated;
+extern const char* calibratedConName;
 
 extern bool NoReqAcGyrocursor;
 extern bool NoReqAcLeftClick;
@@ -51,7 +52,7 @@ extern bool invY;
 
 extern std::thread runUpdateLoop;
 
-extern std::atomic<bool> update;
+extern std::atomic<volatile bool> update;
 
 extern int theListeningOne;
 

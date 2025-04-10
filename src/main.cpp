@@ -1,3 +1,18 @@
+/*Notizblock
+* controller calibrated lable safen, die neuen einstellungen safen sowie invert weil warum nicht. machen das calibrated on bootup stimmt
+* und nicht zu not calibrated defaulete
+* fick mein leben aber ich will machen das man keyboard und maus und so wie man will auf controller machen kann
+* orgendeinen weg finden das computer spiele die auf wasd laufen joystick support haben
+* óbwohl ich da nicht viel machen kann weil wasd ist halt einfach wasd. aber es könnte trotzdem klappen
+* diagonal ist dann einfach wd gleichzeitig zum beipiel und rest kann man machen indem man mit gyro einfach winkel änder aber dann braucht man
+* wie bei splatoon rechten stick erstmal und reset knopf
+* aber manche sachen müssen in andere branches. zb rechter stick für cursor darf noch in master aber dieses auf keyboard mappen muss neuer branch
+* und dieses reseten wenn neu gestartet wird das cursor in die mitte platziert wird muss optional sein weil wenn man windows navigiert kurz
+* loslassen damit man vernünftig klicken kann und dann von da wieder weiter oder so ein cursor lock knopf um den kurz still zu halten wahrscheinlich
+* besser weil dann hab ich kein problem mit reset on reset toggle weil villeicht will man so in ein spiel rein und dann wieder resetten nh
+* dese´wegen cursor lock besser
+*/
+
 #pragma once
 
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
@@ -15,9 +30,10 @@ std::vector<int> conIds;
 float avgDriftX;
 float avgDriftY;
 bool calibrated = false;
+const char* calibratedConName = "Z";
 std::atomic<bool> runningCal = false;
 
-std::atomic<bool> update = true;
+std::atomic<volatile bool> update = true;
 std::thread runUpdateLoop;
 
 
@@ -35,6 +51,7 @@ bool triggerClick = false;
 int dataRate = 200; 
 
 bool isActivation = false;
+bool toggleWasDown = false;
 
 //SDL gyro returns delta values. When the controller is on a flat surface it should return 0 on all axis. 
 //If not 10 samples are taken, averaged and saved to always be subtracted from the polled delta values
@@ -63,6 +80,7 @@ void Calibration()
     avgDriftY = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
 	runningCal = false; //for threading
 	calibrated = true; //for ui
+	calibratedConName = SDL_GetGamepadNameForID(SDL_GetGamepadID(activeCon));
 	}
 }
 
@@ -86,9 +104,12 @@ void UpdateLoop()
 		{
 			SDL_PumpEvents();
 			//checks for activation button pressed. only run on te first frame of activator pressed
-			if ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor) && !NoGyroCursor)
+			if ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor && isActivation) && !NoGyroCursor)
 			{
+				//bool toggle an
+				//bool toggle was down an
 				isActivation = true;
+				toggleWasDown = true;
 				screenWidth = GetSystemMetrics(SM_CXSCREEN);
 				screenHeight = GetSystemMetrics(SM_CYSCREEN);
 				cursorPos.x = screenWidth / 2; 
@@ -97,22 +118,37 @@ void UpdateLoop()
 				float data[2] = { 0.0f, 0.0f }; //Reset delta yaw and pitch for cursor. this is the total delta from the position from which the activator was pressed. an accumalation of all values read since the first activation so to say the current 2d state of the controller in space
 				float DYNdata[2] = { 0.0f, 0.0f }; //Reset read delta yaw and pitch. this is only the momentary delta
 				const std::chrono::microseconds cycleDurationU(1'000'000 / dataRate); //runs this loop only at 200hz to prevent cpu burn
-				while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor)
+				while ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || (NoReqAcGyrocursor && isActivation)) && update)
 				{
+					if (!((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && (NoReqAcGyrocursor && toggleWasDown))
+					{
+						toggleWasDown = false;
+					}
+					else if (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && (NoReqAcGyrocursor && !toggleWasDown))
+					{
+						isActivation = false;
+						toggleWasDown = true;
+						while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && update)
+						{ 
+							SDL_Delay(200); //wir terminieren nicht wenn angetogglet? allgemeien nicht nur hier
+						}
+						break;
+					}
 					auto cycleStartU = std::chrono::high_resolution_clock::now();
 					SDL_PumpEvents(); //since gyro isnt an event (the while (pollevent) ignores it) and i run ui at a target of 15 fps we need to pump here to have proper 200hz in the update loop even though its not threadsafe but eh
 					SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2); //read delta gyro data and place it in our delta array
 
+					float data[2] = { 0.0f, 0.0f };
 					//subtracts drift
 					DYNdata[1] -= avgDriftX;
 					DYNdata[0] -= avgDriftY;
 
 					//inverts
-					if (invX)
+					if (!invX)
 					{
 						DYNdata[1] *= -1;
 					}
-					if (invY)
+					if (!invY)
 					{
 						DYNdata[0] *= -1;
 					}
@@ -137,8 +173,8 @@ void UpdateLoop()
 
 					//predetermined max movement that should be neccessary to go from 0 to edge of screen
 
-					float MaxGyroForComforty = 30.0f / sensitivity;
-					float MaxGyroForComfortx = 30.0f / sensitivity;
+					float MaxGyroForComforty = 40.0f / sensitivity;
+					float MaxGyroForComfortx = 40.0f / sensitivity;
 
 					//if at edge, do not add to data. this way you dont have to move all the way back to come back from the edge
 					//if you moved way outside bounce you would normally hae to move the same distance back. this way you dont
@@ -153,11 +189,11 @@ void UpdateLoop()
 
 					if (!data[1] == 0)
 					{
-						newposx = (((abs(data[1]) / MaxGyroForComforty) * (float)(screenWidth / 2)) * nill);
+						data[1] = (((abs(data[1]) / MaxGyroForComforty) * (float)(screenWidth / 2)) * nill);
 					}
 					if (!data[0] == 0)
 					{
-						newposy = (((abs(data[0]) / MaxGyroForComfortx) * (float)(screenHeight / 2)) * nuhull);
+						data[0] = (((abs(data[0]) / MaxGyroForComfortx) * (float)(screenHeight / 2)) * nuhull);
 					}
 
 					GetCursorPos(&cursorPos);
@@ -227,7 +263,7 @@ void UpdateLoop()
 
 void UpdateCon(int pActiveConId) //sets all relevent variable to update the controller
 {
-	calibrated = false;
+	calibrated = false; //machen das beim ersten mal das nicht e´defaultet. odersagen calibriert auf folgenden controller ist besser denk ich dann ist das nur bei uncalibrated false und dann ist 0.0 auch ok für calibration weil wenn wir lable saven saven wir auch automatisch das calibrairt wurde überhauüt ez
 	activeCon = SDL_OpenGamepad(pActiveConId);
 	SDL_SensorType type = SDL_SENSOR_GYRO;
 	bool cem = SDL_GamepadHasSensor(activeCon, type);
