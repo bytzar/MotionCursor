@@ -13,6 +13,21 @@
 * dese´wegen cursor lock besser
 * irgendeinelösunge dafür finden das self compiler wissen wonach sie suchen müssen. das maingui.h tief in external deps vergraben ist und main und maingui cpp die dateien sind.
 * klar die können nachgucken aber ist nicht sehr intuitiv
+* 
+* 
+* immediate todo calibration text 
+* savefile motioncursor.ini updaten für die neuen sachen wie calibrationconlable und die optionen wie toglle
+* 
+* danach
+* 
+* cursor reset und cursor lock hotkeys
+* dann rechter stick für cursor offset und wahrscheinlich dafür auch sensi aber jetzt erstmal nightly build
+* 
+* 1. gucken das man updates sieht und zum updaten geprompted wird was ein albtraum sein wird  wgen cursor.ini. villeicht so nh versions nummer reinmachen und oder eine neue datei nur für 
+* kyboard rempas ja das ist besser weil wenn ich in mitoncursor neue einstellungen hab werden die alten dateien kapputt sein aber diese einstellung sind set once and done
+* also dürfen die ruhig kaputt gehen aber macros ist krassser. das muss immer klappen die dürfen nicht in motioncusro.ini und was wenn ich profile einbaue villeicht auch machen
+* hey create new profile save profile as und wenn man anderes profile will kann man eine datei selecten wäre besser denk ich
+und readme verschönern
 */
 
 #pragma once
@@ -32,7 +47,7 @@ std::vector<int> conIds;
 float avgDriftX;
 float avgDriftY;
 bool calibrated = false;
-const char* calibratedConName = "Z";
+std::string calibratedConName = "Z";
 std::atomic<bool> runningCal = false;
 
 std::atomic<volatile bool> update = true;
@@ -175,8 +190,8 @@ void UpdateLoop()
 
 					//predetermined max movement that should be neccessary to go from 0 to edge of screen
 
-					float MaxGyroForComforty = 40.0f / sensitivity;
-					float MaxGyroForComfortx = 40.0f / sensitivity;
+					float MaxGyroForComforty = 40.0f;
+					float MaxGyroForComfortx = 40.0f;
 
 					//if at edge, do not add to data. this way you dont have to move all the way back to come back from the edge
 					//if you moved way outside bounce you would normally hae to move the same distance back. this way you dont
@@ -208,7 +223,7 @@ void UpdateLoop()
 					INPUT iput = { 0 };
 					iput.type = INPUT_MOUSE;
 					iput.mi.dx = data[1] * sensitivity;
-					iput.mi.dy = data[0] * sensitivity;
+					iput.mi.dy = data[0] * sensitivity; 
 					iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
 					SendInput(1, &iput, sizeof(INPUT));
 
@@ -265,7 +280,7 @@ void UpdateLoop()
 
 void UpdateCon(int pActiveConId) //sets all relevent variable to update the controller
 {
-	calibrated = false; //machen das beim ersten mal das nicht e´defaultet. odersagen calibriert auf folgenden controller ist besser denk ich dann ist das nur bei uncalibrated false und dann ist 0.0 auch ok für calibration weil wenn wir lable saven saven wir auch automatisch das calibrairt wurde überhauüt ez
+	//calibrated = false; //machen das beim ersten mal das nicht e´defaultet. odersagen calibriert auf folgenden controller ist besser denk ich dann ist das nur bei uncalibrated false und dann ist 0.0 auch ok für calibration weil wenn wir lable saven saven wir auch automatisch das calibrairt wurde überhauüt ez
 	activeCon = SDL_OpenGamepad(pActiveConId);
 	SDL_SensorType type = SDL_SENSOR_GYRO;
 	bool cem = SDL_GamepadHasSensor(activeCon, type);
@@ -374,6 +389,14 @@ int main() //main thread reads settings and then does ui
 		file >> NoReqAcLeftClick;
 		file >> NoLeftClick;
 		file >> NoGyroCursor;
+		file >> NoReqAcGyrocursor;
+		std::string tempus;
+		bool firsTime = true;
+		while (file >> tempus)
+		{
+			if (firsTime) { calibratedConName = tempus; firsTime = false; }
+			else { calibratedConName += " " + tempus; }
+		}
 	}
 	SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 	mainRender(NULL, nullptr);

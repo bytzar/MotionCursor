@@ -229,7 +229,7 @@ int mainRender(int, char**)
                 }
             }
             ImGui::SameLine();
-            if (calibrated && !calibratedConName[0] != '\Z') 
+            if (calibrated && !(calibratedConName.compare("Z") == 0))
             {
                 std::string p = "calibrated for ";
                 std::string c = (calibratedConName);
@@ -288,6 +288,7 @@ int mainRender(int, char**)
                                     runUpdateCon.join();  // Make sure old thread is done
                                 }
                                 runUpdateCon = std::thread(UpdateCon, conIds[i]);
+                                calibrated = false;
                             }
                             activeConId = i;
                         }
@@ -301,7 +302,7 @@ int mainRender(int, char**)
             if (ImGui::Button("default"))
                 sensitivity = 1.0f;
             ImGui::SameLine();
-            ImGui::SliderFloat("  ", &sensitivity, 0.001f, 10.0f);
+            ImGui::SliderFloat("  ", &sensitivity, 0.001f, 5.0f);
 
             if (ImGui::Button("remap activation button") && !listening && !listeningClick)
             {
@@ -414,6 +415,8 @@ int mainRender(int, char**)
     file << NoReqAcLeftClick << "\n";
     file << NoLeftClick << "\n";
     file << NoGyroCursor << "\n";
+    file << NoReqAcGyrocursor << "\n";
+    file << calibratedConName << "\n";
 
     file.close();
 

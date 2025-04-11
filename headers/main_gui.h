@@ -41,7 +41,7 @@ void UpdateLoop();
 extern SDL_Event event; //RUNMOVE
 
 extern bool calibrated;
-extern const char* calibratedConName;
+extern std::string calibratedConName;
 
 extern bool NoReqAcGyrocursor;
 extern bool NoReqAcLeftClick;
