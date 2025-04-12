@@ -24,7 +24,7 @@
 * cursor reset und cursor lock hotkeys
 * dann rechter stick für cursor offset und wahrscheinlich dafür auch sensi aber jetzt erstmal nightly build
 * 
-* 1. gucken das man updates sieht und zum updaten geprompted wird was ein albtraum sein wird  wgen cursor.ini. villeicht so nh versions nummer reinmachen und oder eine neue datei nur für 
+* oder doch nciht keep it simple. das projekt soll an einen fertigen punkt kommen und dann dev aufhören.1. gucken das man updates sieht und zum updaten geprompted wird was ein albtraum sein wird  wgen cursor.ini. villeicht so nh versions nummer reinmachen und oder eine neue datei nur für 
 * kyboard rempas ja das ist besser weil wenn ich in mitoncursor neue einstellungen hab werden die alten dateien kapputt sein aber diese einstellung sind set once and done
 * also dürfen die ruhig kaputt gehen aber macros ist krassser. das muss immer klappen die dürfen nicht in motioncusro.ini und was wenn ich profile einbaue villeicht auch machen
 * hey create new profile save profile as und wenn man anderes profile will kann man eine datei selecten wäre besser denk ich
@@ -132,7 +132,10 @@ void UpdateLoop()
 				screenHeight = GetSystemMetrics(SM_CYSCREEN);
 				cursorPos.x = screenWidth / 2; 
 				cursorPos.y = screenHeight / 2;
-				SetCursorPos(screenWidth / 2, screenHeight / 2); //reset cursor position to center of screen
+				if (!NoCentering)
+				{
+					SetCursorPos(screenWidth / 2, screenHeight / 2); //reset cursor position to center of screen
+				}
 				float data[2] = { 0.0f, 0.0f }; //Reset delta yaw and pitch for cursor. this is the total delta from the position from which the activator was pressed. an accumalation of all values read since the first activation so to say the current 2d state of the controller in space
 				float DYNdata[2] = { 0.0f, 0.0f }; //Reset read delta yaw and pitch. this is only the momentary delta
 				const std::chrono::microseconds cycleDurationU(1'000'000 / dataRate); //runs this loop only at 200hz to prevent cpu burn
@@ -393,6 +396,7 @@ int main() //main thread reads settings and then does ui
 		file >> NoReqAcGyrocursor;
 		file >> invX;
 		file >> invY;
+		file >> NoCentering;
 		std::string tempus;
 		bool firsTime = true;
 		while (file >> tempus)

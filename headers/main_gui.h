@@ -43,6 +43,7 @@ extern SDL_Event event; //RUNMOVE
 extern bool calibrated;
 extern std::string calibratedConName;
 
+extern bool NoCentering;
 extern bool NoReqAcGyrocursor;
 extern bool NoReqAcLeftClick;
 extern bool NoGyroCursor;

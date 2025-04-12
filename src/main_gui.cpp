@@ -36,6 +36,7 @@ ImGuiID dockspace_id;
 float sensitivity = 1;
 int theListeningOne = -1;
 
+bool NoCentering = false;
 
 bool NoReqAcGyrocursor = false;
 bool NoReqAcLeftClick = false;
@@ -303,7 +304,7 @@ int mainRender(int, char**)
                 sensitivity = 1.0f;
             ImGui::SameLine();
             ImGui::SliderFloat("  ", &sensitivity, 0.001f, 5.0f);
-
+           
             if (ImGui::Button("remap activation button") && !listening && !listeningClick)
             {
                 if (runRemapAct.joinable()) {
@@ -325,10 +326,9 @@ int mainRender(int, char**)
                 else
                 {
                     const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
-                    ImGui::TextUnformatted(buttonName ? buttonName : "Unknown");
+                    ImGui::TextUnformatted(buttonName ? buttonName : "<none>");
                 }
             }
-
 
 
             if (ImGui::Button("remap click button") && !listening && !listeningClick)
@@ -358,9 +358,13 @@ int mainRender(int, char**)
 
             //uncoooment if you want this setting but cant reccommend it nur probleme weil dann mouse blockiert und wenn gyro nicht richtig klaoppt doof ImGui::Checkbox("Do not require activation for gyro cursor", &NoReqAcGyrocursor); //default off muss immernoch calibration static text fixxen aber ez einfach if svgx nicht 0 oder überhaupt initialisiert dann soll da stehen cablibrated
             ImGui::Checkbox("do not require activation for left clicking", &NoReqAcLeftClick); //default off 
-            ImGui::Checkbox("turn 'hold' activation to 'toggle' activation", &NoReqAcGyrocursor); //toogle ist besser falls man abgefuckten controller oder abgefuckte calibration hat selbst mit mouse kann man villeicht nicht gegen ankämpfen
+            ImGui::Checkbox("turn hold activation to toggle activation", &NoReqAcGyrocursor); //toogle ist besser falls man abgefuckten controller oder abgefuckte calibration hat selbst mit mouse kann man villeicht nicht gegen ankämpfen
+            ImGui::Checkbox("disable centering cursor on activation", &NoCentering); //save to file TODO
             ImGui::Checkbox("disable left clicking", &NoLeftClick); //default off
             ImGui::Checkbox("disable gyro cursor", &NoGyroCursor); //default off
+            
+            //resetbutton
+                //lock
             ImGui::Checkbox("invert x axis gyro", &invX); //dont save as it shouldnt be needed most times
             ImGui::Checkbox("invert y axis gyro", &invY); //default off
             ImGui::TextUnformatted("\nfor calibration, place your controller on a flat surface and hit 'calibrate'");
@@ -417,6 +421,7 @@ int mainRender(int, char**)
     file << NoReqAcGyrocursor << "\n";
     file << invX << "\n";
     file << invY << "\n";
+    file << NoCentering << "\n";
     file << calibratedConName;
 
     file.close();
