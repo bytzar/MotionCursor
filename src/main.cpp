@@ -40,10 +40,6 @@ und readme verschönern
 #include <cmath>
 #include <numeric>
 #include "main_gui.h"
-#include <cpr/cpr.h>
-#include <iostream>
-#include <string>
-#include <nlohmann/json.hpp> // for JSON parsing
 
 SDL_Gamepad* activeCon;
 std::vector<const char*> controllers;
@@ -356,41 +352,6 @@ void UpdateConList()
 		runUpdateLoop = std::thread(UpdateLoop);
 	}
 	first = true;
-}
-
-std::string get_latest_version(const std::string& user, const std::string& repo) {
-	std::string url = "https://api.github.com/repos/" + user + "/" + repo + "/releases/latest";
-	auto response = cpr::Get(cpr::Url{ url },
-		cpr::Header{ {"User-Agent", "MyApp"} }); // GitHub requires a User-Agent
-
-	if (response.status_code != 200) {
-		std::cerr << "Error fetching release info: " << response.status_code << std::endl;
-		return "";
-	}
-
-	auto json = nlohmann::json::parse(response.text);
-	return json["tag_name"];
-}
-
-bool is_update_available(const std::string& current_version, const std::string& latest_version) {
-	return current_version != latest_version;
-}
-
-bool GithubUpdateAvailable()
-{
-	std::string current_version = "v1.0.0"; // your actual version
-	std::string user = "yourusername";
-	std::string repo = "yourrepo";
-
-	std::string latest = get_latest_version(user, repo);
-	if (latest.empty()) return 1;
-
-	if (is_update_available(current_version, latest)) {
-		std::cout << "Update available! Latest version: " << latest << std::endl;
-	}
-	else {
-		std::cout << "You are up to date." << std::endl;
-	}
 }
 
 int main() //main thread reads settings and then does ui
