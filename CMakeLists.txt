@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add SDL3 as a subdirectory (assumed to be at dependencies/SDL3)
 add_subdirectory(dependencies/SDL3)
+add_subdirectory(dependencies/cpr)
 
 # Include your own headers
 include_directories(${CMAKE_SOURCE_DIR}/headers)
@@ -48,7 +49,7 @@ add_executable(MotionCursor WIN32 ${SOURCES} ${IMGUI_SOURCES} ${RESOURCES})
 add_compile_definitions(IMGUI_ENABLE_DOCKING)
 
 # Link SDL3 target (exported by SDL's CMake)
-target_link_libraries(MotionCursor PRIVATE SDL3::SDL3)
+target_link_libraries(MotionCursor PRIVATE SDL3::SDL3 cpr::cpr)
 
 # Copy SDL3.dll after build (runtime dependency)
 add_custom_command(TARGET MotionCursor POST_BUILD
