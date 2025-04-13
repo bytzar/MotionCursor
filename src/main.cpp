@@ -139,7 +139,7 @@ void UpdateLoop()
 				float data[2] = { 0.0f, 0.0f }; //Reset delta yaw and pitch for cursor. this is the total delta from the position from which the activator was pressed. an accumalation of all values read since the first activation so to say the current 2d state of the controller in space
 				float DYNdata[2] = { 0.0f, 0.0f }; //Reset read delta yaw and pitch. this is only the momentary delta
 				const std::chrono::microseconds cycleDurationU(1'000'000 / dataRate); //runs this loop only at 200hz to prevent cpu burn
-				while ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || (NoReqAcGyrocursor && isActivation)) && update)
+				while (((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || (NoReqAcGyrocursor && isActivation)) && update) && !NoGyroCursor)
 				{
 					if (!((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && (NoReqAcGyrocursor && toggleWasDown))
 					{
