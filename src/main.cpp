@@ -28,7 +28,7 @@
 * kyboard rempas ja das ist besser weil wenn ich in mitoncursor neue einstellungen hab werden die alten dateien kapputt sein aber diese einstellung sind set once and done
 * also dürfen die ruhig kaputt gehen aber macros ist krassser. das muss immer klappen die dürfen nicht in motioncusro.ini und was wenn ich profile einbaue villeicht auch machen
 * hey create new profile save profile as und wenn man anderes profile will kann man eine datei selecten wäre besser denk ich
-und readme verschönern
+und readme verschönern!!!!!!!!!! SEO auch
 */
 
 #pragma once
@@ -445,8 +445,8 @@ void RemapHotkey(hotkey* pHotkey) //muss als pointer shicken?
 	while (SDL_GetTicks() - start_time < timeout_ms) {
 
 		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (true) { // ehrlich einfah so lassen klappt ja ka SDL_WaitEventTimeout(&event, remaining_time) kann sein das probleme davon kommen das nicht auf main thread ist
-
+		if (true)
+		{ // ehrlich einfah so lassen klappt ja ka SDL_WaitEventTimeout(&event, remaining_time) kann sein das probleme davon kommen das nicht auf main thread ist
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
 				(*pHotkey).button = static_cast<SDL_GamepadButton>(event.gbutton.button);
 				(*pHotkey).activeLable = SDL_GetGamepadStringForButton((*pHotkey).button);
