@@ -18,8 +18,11 @@ void UpdateConList();
 extern std::vector<int> conIds;
 extern bool first;
 extern float sensitivity;
-void RemapActivator();
+//void RemapActivator();
 void RemapClick();
+
+
+/*
 extern bool listening;
 extern bool listeningClick;
 
@@ -29,7 +32,28 @@ extern SDL_GamepadAxis axisActivator;
 extern SDL_GamepadAxis axisClick;
 extern bool triggerAct;
 extern bool triggerClick;
+*/
 
+class hotkey
+{
+public:
+	SDL_GamepadButton button = static_cast<SDL_GamepadButton>(-1);
+	SDL_GamepadAxis axis = static_cast<SDL_GamepadAxis>(-1);
+	bool trigger = false;
+	bool listening = false;
+	const char* activeLable = "Z";
+
+	bool isActive(SDL_Gamepad* pController)
+	{
+		return (SDL_GetGamepadButton(pController, button) && !trigger) || (SDL_GetGamepadAxis(pController, axis) && trigger && SDL_GetGamepadAxis(pController, axis) > 16000);
+	}
+};
+void RemapHotkey(hotkey*);
+
+extern hotkey activator;
+extern hotkey click;
+
+extern bool globalListening;
 
 extern SDL_Gamepad* activeCon;
 

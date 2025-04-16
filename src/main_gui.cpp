@@ -27,8 +27,7 @@
 int activeConId = 0;
 std::thread runCal;
 std::thread runUpdateCon;
-std::thread runRemapAct;
-std::thread runRemapClick;
+std::thread runRemap;
 
 bool virginCall = true;
 bool first = true;
@@ -243,8 +242,6 @@ int mainRender(int, char**)
             }
 
             
-
-            
             if (ImGui::Button("Refresh"))
             {
                 if (first)
@@ -305,56 +302,41 @@ int mainRender(int, char**)
             ImGui::SameLine();
             ImGui::SliderFloat("  ", &sensitivity, 0.001f, 5.0f);
            
-            if (ImGui::Button("remap activation button") && !listening && !listeningClick)
+            if (ImGui::Button("remap activation button") && !globalListening) 
             {
-                if (runRemapAct.joinable()) {
-                    runRemapAct.join();  // Make sure old thread is done
+                if (runRemap.joinable()) {
+                    runRemap.join();  // Make sure old thread is done
                 }
-                runRemapAct = std::thread(RemapActivator);
+                runRemap = std::thread(RemapHotkey, &activator); //global listening für internal und hotkey.lidtening für ui
             }
             ImGui::SameLine();
-            if (listening)
+            if (activator.listening)
             {
                 ImGui::TextUnformatted("<listening>");
             }
             else
-            {
-                if (triggerAct)
-                {
-                    ImGui::TextUnformatted((axisActivator == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger");
-                }
-                else
-                {
-                    const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
-                    ImGui::TextUnformatted(buttonName ? buttonName : "<none>");
-                }
-            }
+			{
+				ImGui::TextUnformatted(activator.activeLable);
+			}
 
 
-            if (ImGui::Button("remap click button") && !listening && !listeningClick)
+            if (ImGui::Button("remap click button") && !globalListening) //als erringerung fpr todo global listening damit ich nicht für jeden hotkey && !listeningheoitkey machen muss für ui dann musss natürlich aber dann steht das nur einmal im if
             {
-                if (runRemapClick.joinable()) {
-                    runRemapClick.join();  // Make sure old thread is done
+                if (runRemap.joinable()) {
+                    runRemap.join();  // Make sure old thread is done
                 }
-                runRemapClick = std::thread(RemapClick);
+                runRemap = std::thread(RemapHotkey, &click);
+                //runRemapClick = std::thread(RemapClick);
             }
             ImGui::SameLine();
-            if (listeningClick)
+            if (click.listening)
             {
                 ImGui::TextUnformatted("<listening>");
             }
             else
-            {
-                if (triggerClick)
-                {
-                    ImGui::TextUnformatted((axisClick == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger");
-                }
-                else
-                {
-                    const char* buttonName = SDL_GetGamepadStringForButton(buttonClick);
-                    ImGui::TextUnformatted(buttonName ? buttonName : "Unknown");
-                }
-            }
+			{
+				ImGui::TextUnformatted(click.activeLable); //das zu activelable machen 
+			}
 
             //uncoooment if you want this setting but cant reccommend it nur probleme weil dann mouse blockiert und wenn gyro nicht richtig klaoppt doof ImGui::Checkbox("Do not require activation for gyro cursor", &NoReqAcGyrocursor); //default off muss immernoch calibration static text fixxen aber ez einfach if svgx nicht 0 oder überhaupt initialisiert dann soll da stehen cablibrated
             ImGui::Checkbox("do not require activation for left clicking", &NoReqAcLeftClick); //default off 
@@ -372,7 +354,14 @@ int mainRender(int, char**)
             ImGui::TextUnformatted("calibrating only affect this program, not the controller");
             //ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs gucken ob das noch passiert");
 
+            /* display framerate
+            char buffer[64];
+            int ret = snprintf(buffer, sizeof buffer, "%f", ImGui::GetIO().Framerate);
+
+            ImGui::TextUnformatted((buffer));
+            */
             
+
             ImGui::End();
         }
         ////////////////////////////////////
@@ -405,16 +394,29 @@ int mainRender(int, char**)
 
     std::ofstream file("MotionCursor.ini");
 
+    file << 1746 << "\n"; //file integrity check
     file << fontSize << "\n";
     file << avgDriftX << "\n";
     file << avgDriftY << "\n";
     file << sensitivity << "\n";
+    /*
     file << buttonActivator << "\n";
     file << buttonClick << "\n";
     file << axisActivator << "\n";
     file << axisClick << "\n";
     file << triggerAct << "\n";
     file << triggerClick << "\n";
+    */
+    file << activator.button << "\n";
+    file << activator.axis << "\n";
+    //file << activator.activeLable << "\n";
+    file << activator.trigger << "\n";
+
+    file << click.button << "\n";
+    file << click.axis << "\n";
+    //file << click.activeLable << "\n";
+    file << click.trigger << "\n";
+    
     file << NoReqAcLeftClick << "\n";
     file << NoLeftClick << "\n";
     file << NoGyroCursor << "\n";
@@ -436,13 +438,9 @@ int mainRender(int, char**)
     {
         runUpdateCon.join();
     }
-    if (runRemapAct.joinable())
+    if (runRemap.joinable())
     {
-        runRemapAct.join();
-    }
-    if (runRemapClick.joinable())
-    {
-        runRemapClick.join();
+        runRemap.join();
     }
     if (runUpdateLoop.joinable())
     {

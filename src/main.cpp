@@ -54,15 +54,21 @@ std::atomic<bool> runningCal = false;
 std::atomic<volatile bool> update = true;
 std::thread runUpdateLoop;
 
+bool globalListening = false;
 
+/*
 SDL_GamepadButton buttonActivator = SDL_GAMEPAD_BUTTON_MISC1; 
 SDL_GamepadButton buttonClick = SDL_GAMEPAD_BUTTON_EAST;
 SDL_GamepadAxis axisActivator; //Triggers and buttons are different datatypes, so we prepare another variable in case triggers are used
 SDL_GamepadAxis axisClick;
 bool listening = false;
-bool listeningClick = false;
+bool listeningClick = false; //entfernen alles auf listening mahcne. aus ui gründen nicht möglich
 bool triggerAct = false;
 bool triggerClick = false;
+*/
+hotkey activator;
+hotkey click;
+
 
 //the datarate for a ns pro con. should be sufficient for all controllers capped at 200hz 
 //because some controllers go a bit off the charts
@@ -122,8 +128,8 @@ void UpdateLoop()
 		{
 			SDL_PumpEvents();
 			//checks for activation button pressed. only run on te first frame of activator pressed
-			if ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor && isActivation) && !NoGyroCursor)
-			{
+			if (((activator.isActive(activeCon)) || NoReqAcGyrocursor && isActivation) && !NoGyroCursor)
+			{//eig könnte man eine methode in hotkey macen if pressed so dann muss nicht immer so eine beaheamoth if und ist lesbarer jaaa ok mach ich aber später nein jetzt uhh
 				//bool toggle an
 				//bool toggle was down an
 				isActivation = true;
@@ -139,17 +145,17 @@ void UpdateLoop()
 				float data[2] = { 0.0f, 0.0f }; //Reset delta yaw and pitch for cursor. this is the total delta from the position from which the activator was pressed. an accumalation of all values read since the first activation so to say the current 2d state of the controller in space
 				float DYNdata[2] = { 0.0f, 0.0f }; //Reset read delta yaw and pitch. this is only the momentary delta
 				const std::chrono::microseconds cycleDurationU(1'000'000 / dataRate); //runs this loop only at 200hz to prevent cpu burn
-				while (((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || (NoReqAcGyrocursor && isActivation)) && update) && !NoGyroCursor)
+				while ((((activator.isActive(activeCon)) || (NoReqAcGyrocursor && isActivation)) && update) && !NoGyroCursor)
 				{
-					if (!((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && (NoReqAcGyrocursor && toggleWasDown))
+					if (!(activator.isActive(activeCon)) && (NoReqAcGyrocursor && toggleWasDown))
 					{
 						toggleWasDown = false;
 					}
-					else if (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && (NoReqAcGyrocursor && !toggleWasDown))
+					else if ((activator.isActive(activeCon)) && (NoReqAcGyrocursor && !toggleWasDown))
 					{
 						isActivation = false;
 						toggleWasDown = true;
-						while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) && update)
+						while ((activator.isActive(activeCon)) && update)
 						{ 
 							SDL_Delay(200);
 						}
@@ -232,13 +238,13 @@ void UpdateLoop()
 					SendInput(1, &iput, sizeof(INPUT));
 
 					//implemented this way to enable hold and drag functiponality
-					if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && !NoLeftClick)
+					if (((click.isActive(activeCon)) && !wasDown) && !NoLeftClick)
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = true;
 					}
-					else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick))))
+					else if (wasDown && !click.isActive(activeCon))
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 						SendInput(1, inputs, sizeof(INPUT));
@@ -257,13 +263,13 @@ void UpdateLoop()
 			}
 			isActivation = false;
 			//in case do not require activation for left click is on
-			if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && NoReqAcLeftClick && !NoLeftClick)
+			if (((click.isActive(activeCon)) && !wasDown) && NoReqAcLeftClick && !NoLeftClick)
 			{
 				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 				SendInput(1, inputs, sizeof(INPUT));
 				wasDown = true;
 			}
-			else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick))) && NoReqAcLeftClick)
+			else if (wasDown && ((!click.isActive(activeCon))) && NoReqAcLeftClick)
 			{
 				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 				SendInput(1, inputs, sizeof(INPUT));
@@ -357,119 +363,108 @@ void UpdateConList()
 	first = true;
 }
 
-int main() //main thread reads settings and then does ui
+int main() //main thread reads settings and then does ui :: todo falls lesen errort wegen neue version von save management dann soll die datei entweder einfach ignoriert werden, einfach variablen zurücksetzen und darauf hoffen das user norma beendet und von so alles neu macht. oder datei löschen aber da bin ich gegen weil was wenn bug und rm rf C:. einfach ignorieren oder datei mit null fülllen ja das besser einfach einmal komplett raus lesen damit leeer
 {
+	activator.button = static_cast<SDL_GamepadButton>(15); //SDL_GAMEPAD_BUTTON_MISC1 einfach richtig gute arbeit gut gemacht
+	activator.activeLable = SDL_GetGamepadStringForButton(activator.button);
+
+	click.button = static_cast<SDL_GamepadButton>(SDL_GAMEPAD_BUTTON_EAST);
+	click.activeLable = SDL_GetGamepadStringForButton(activator.button);
+
 	if (std::ifstream("MotionCursor.ini"))
 	{
 		std::ifstream file("MotionCursor.ini");
-		
-		int temporus;
 
-		file >> fontSize;
-		file >> avgDriftX;
-		file >> avgDriftY;
-
-		if (avgDriftX != 0 && avgDriftY != 0) //if controller has no drift then it will mistakenly think its not calibarated but no biggie
+		int p;
+		file >> p;
+		if (p == 1746) //kann die zahl mit jeder neuen version ändern damit die leute keine kaputten alten savesreinlesen
 		{
-			calibrated = true; //for ui purposes
-		}
+			int temporus;
 
-		file >> sensitivity;
+			file >> fontSize;
+			file >> avgDriftX;
+			file >> avgDriftY;
 
-		file >> temporus;
-		buttonActivator = static_cast<SDL_GamepadButton>(temporus);
+			/*
+			if (avgDriftX != 0 && avgDriftY != 0) //if controller has no drift then it will mistakenly think its not calibarated but no biggie
+			{
+				calibrated = true; //for ui purposes wegmachen für WAIT BRBUHeiiiieeieeieieieieioeioeieoieoiweoiopiiojijpi4oi einfach calibrated lesen und schreiben und wenn updated con calibrated = false
+			}
+			*/
+			
 
-		file >> temporus;
-		buttonClick = static_cast<SDL_GamepadButton>(temporus);
+			file >> sensitivity;
 
-		file >> temporus;
-		axisActivator = static_cast<SDL_GamepadAxis>(temporus);
+			file >> temporus;
+			activator.button = static_cast<SDL_GamepadButton>(temporus);
 
-		file >> temporus;
-		axisClick = static_cast<SDL_GamepadAxis>(temporus);
+			file >> temporus;
+			activator.axis = static_cast<SDL_GamepadAxis>(temporus);
 
-		file >> triggerAct;
-		file >> triggerClick;
-		file >> NoReqAcLeftClick;
-		file >> NoLeftClick;
-		file >> NoGyroCursor;
-		file >> NoReqAcGyrocursor;
-		file >> invX;
-		file >> invY;
-		file >> NoCentering;
-		std::string tempus;
-		bool firsTime = true;
-		while (file >> tempus)
-		{
-			if (firsTime) { calibratedConName = tempus; firsTime = false; }
-			else { calibratedConName += " " + tempus; }
+			file >> activator.trigger;//falls das unten sov nicht klappt methode in klasse machn
+			activator.activeLable = activator.trigger ? SDL_GetGamepadStringForAxis(activator.axis) : SDL_GetGamepadStringForButton(activator.button);
+
+			file >> temporus;
+			click.button = static_cast<SDL_GamepadButton>(temporus);
+
+			file >> temporus;
+			click.axis = static_cast<SDL_GamepadAxis>(temporus);
+
+			file >> click.trigger;//falls das unten sov nicht klappt methode in klasse machn
+			click.activeLable = click.trigger ? SDL_GetGamepadStringForAxis(click.axis) : SDL_GetGamepadStringForButton(click.button);
+
+			file >> NoReqAcLeftClick;
+			file >> NoLeftClick;
+			file >> NoGyroCursor;
+			file >> NoReqAcGyrocursor;
+			file >> invX;
+			file >> invY;
+			file >> NoCentering;
+			std::string tempus;
+			bool firsTime = true;
+			while (file >> tempus)
+			{
+				if (firsTime) { calibratedConName = tempus; firsTime = false; }
+				else { calibratedConName += " " + tempus; }
+			}
+			calibrated = calibratedConName.compare("Z") != 0; //der waix mit dem offbrand amazon controller dessen name tatsächlich Z ist :: if calibratedcon name exists then the configuration for that con is saved apperantly
 		}
 	}
+	
 	SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 	mainRender(NULL, nullptr);
 	return 0;
 }
 
-void RemapActivator()
+void RemapHotkey(hotkey* pHotkey) //muss als pointer shicken?
 {
 	const int timeout_ms = 7000; // 7 seconds
 	Uint64 start_time = SDL_GetTicks();
-	listening = true;
+	(*pHotkey).listening = true;
+	globalListening = true;
 	while (SDL_GetTicks() - start_time < timeout_ms) {
 
 		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
 		if (true) { // ehrlich einfah so lassen klappt ja ka SDL_WaitEventTimeout(&event, remaining_time) kann sein das probleme davon kommen das nicht auf main thread ist
 
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-				buttonActivator = static_cast<SDL_GamepadButton>(event.gbutton.button);
-				const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
-				triggerAct = false;
+				(*pHotkey).button = static_cast<SDL_GamepadButton>(event.gbutton.button);
+				(*pHotkey).activeLable = SDL_GetGamepadStringForButton((*pHotkey).button);
+				(*pHotkey).trigger = false;
 				break;
 			}
 			else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
 				if (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || event.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
 					if (event.gaxis.value > 16000) {
-						axisActivator = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
-						triggerAct = true;
-						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger";
+						(*pHotkey).axis = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
+						(*pHotkey).activeLable = SDL_GetGamepadStringForAxis((*pHotkey).axis);
+						(*pHotkey).trigger = true;
 						break;
 					}
 				}
 			}
 		}
 	}
-	listening = false;
-
-}
-//code duplication, i could fix but realistically not so important
-void RemapClick()
-{
-	const int timeout_ms = 7000; // 7 seconds
-	Uint64 start_time = SDL_GetTicks();
-	listeningClick = true;
-
-	while (SDL_GetTicks() - start_time < timeout_ms) {
-
-		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (true) { //SDL_WaitEventTimeout(&event, remaining_time)
-
-			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-				buttonClick = static_cast<SDL_GamepadButton>(event.gbutton.button);
-				const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
-				triggerClick = false;
-				break;
-			}
-			else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
-				if (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || event.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
-					if (event.gaxis.value > 16000) {
-						axisClick = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
-						triggerClick = true;
-						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger";
-						break;
-					}
-				}
-			}
-		}
-	}
-	listeningClick = false;
+	(*pHotkey).listening = false;
+	globalListening = false;
 }
