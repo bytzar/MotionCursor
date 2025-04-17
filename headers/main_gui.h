@@ -39,6 +39,9 @@ extern hotkey click;
 extern hotkey lock;
 extern hotkey reset;
 
+extern float stickX;
+extern float stickY;
+
 extern bool globalListening;
 
 extern SDL_Gamepad* activeCon;

@@ -403,6 +403,12 @@ int mainRender(int, char**)
             ImGui::TextUnformatted("calibration takes less than a second and is controller specific, only latest calibration is saved");
             ImGui::TextUnformatted("calibrating only affect this program, not the controller");
 
+            std::string str4 = std::to_string(stickX);
+            char const* pchar4 = str4.c_str();
+            ImGui::TextUnformatted(pchar4);
+            str4 = std::to_string(stickY);
+            pchar4 = str4.c_str();
+            ImGui::TextUnformatted(pchar4);
 
             //ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs gucken ob das noch passiert");
 

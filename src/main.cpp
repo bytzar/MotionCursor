@@ -30,6 +30,8 @@
 * also dürfen die ruhig kaputt gehen aber macros ist krassser. das muss immer klappen die dürfen nicht in motioncusro.ini und was wenn ich profile einbaue villeicht auch machen
 * hey create new profile save profile as und wenn man anderes profile will kann man eine datei selecten wäre besser denk ich
 und readme verschönern!!!!!!!!!! SEO auch in die readme auch ein screenshot damit man auf einen blick weiß was es alles kann. auch non gyro support indem ausgewählter stick cursor ontrolliert
+
+multi monitor support..
 */
 
 #pragma once
@@ -41,6 +43,7 @@ und readme verschönern!!!!!!!!!! SEO auch in die readme auch ein screenshot dami
 #include <cmath>
 #include <numeric>
 #include "main_gui.h"
+
 
 SDL_Gamepad* activeCon;
 std::vector<const char*> controllers;
@@ -65,6 +68,9 @@ bool gyroExist = false;
 
 bool wasDown = false;
 INPUT inputs[1] = { };
+
+float stickX = 0.0f;
+float stickY = 0.0f;
 
 //the datarate for a ns pro con. should be sufficient for all controllers capped at 200hz 
 //because some controllers go a bit off the charts. this throttles the program so it does no t consume so many system ressources
@@ -130,6 +136,26 @@ void ResetCursorPos() //fun fact lock erfüllt die y reset funktionalität von spl
 	}
 }
 
+void StickInput() //todo toggle das man auch left stick benutzen kann
+{
+	stickX = SDL_GetGamepadAxis(activeCon, SDL_GAMEPAD_AXIS_RIGHTX) / 32767.0f;
+	stickY = SDL_GetGamepadAxis(activeCon, SDL_GAMEPAD_AXIS_RIGHTY) / 32767.0f;
+
+	if (fabs(stickX) < 0.1f) stickX = 0.0f;
+	if (fabs(stickY) < 0.1f) stickY = 0.0f;
+
+	if (fabs(stickX) > 0.9f) stickX = 1.0f;
+	if (fabs(stickY) > 0.9f) stickY = 1.0f;
+
+	//movecurosor function?
+	INPUT iput = { 0 };
+	iput.type = INPUT_MOUSE;
+	iput.mi.dx = stickX * sensitivity *15;
+	iput.mi.dy = stickY * sensitivity *15;
+	iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
+	SendInput(1, &iput, sizeof(INPUT));
+}
+
 void UpdateLoop()
 {
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN); 
@@ -174,6 +200,7 @@ void UpdateLoop()
 				{
 					auto cycleStartU = std::chrono::high_resolution_clock::now(); //muss höher TDODOTOSoTODO
 					SDL_PumpEvents(); //since gyro isnt an event (the while (pollevent) ignores it) and i run ui at a target of 15 fps we need to pump here to have proper 200hz in the update loop even though its not threadsafe but eh
+					StickInput();//todo
 					if (!(activator.isActive(activeCon)) && (NoReqAcGyrocursor && toggleWasDown))
 					{
 						toggleWasDown = false;
