@@ -15,7 +15,7 @@
 * wenn man ein toggle user ist braucht man reset knopf, resettn beim neustart muss optional werden einfach mit checkbox, und lok cursor ist muss..? oder lass los und hab norecaccursor an
 * 
 * 
-* danach
+* danach FAIL SAVES FPR NON GYROhbj
 * coll und für accesssibility wichtig wäre run on startup und minimize to system trey und ein weg das der auf neu connecteted controller reagiert falls man kein keyboard und maus hat und nicht auf refresh klicken kann
 * und was wenn der falsche controller verbunden wurde ahh so unlösbar. ich könnte ja sekündlich scannen bis ein controller verbunden ist wenn es startup program ist
 * cursor reset und cursor lock hotkeys und dann rechter stick und dann neuer branch für keyboard mapping und dann fertig denk ich mal aber erst bisschen so ohen sophisticated ui bisschen gucken ob das spaß und sinn macht.
@@ -61,6 +61,8 @@ hotkey click;
 hotkey lock;
 hotkey reset;
 
+bool gyroExist = false;
+
 bool wasDown = false;
 INPUT inputs[1] = { };
 
@@ -75,30 +77,30 @@ bool toggleWasDown = false;
 //If not 10 samples are taken, averaged and saved to always be subtracted from the polled delta values
 void Calibration() 
 {
-	if (!runningCal && activeCon)
+	if (!runningCal && activeCon && gyroExist)
 	{
-	runningCal = true;
-    float drift[2] = { 0.0f, 0.0f };
-    float xDrift[10];
-    float yDrift[10];
-    for (int i = 0; i < 10; i++) //calibaration, takes 10 samples of idle gyro for avg and counters later
-    {
-        SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, drift, 2);
-        xDrift[i] = drift[1];
-        yDrift[i] = drift[0];
-
-        SDL_Delay(20); 
-		if (!runningCal) 
+		runningCal = true;
+		float drift[2] = { 0.0f, 0.0f };
+		float xDrift[10];
+		float yDrift[10];
+		for (int i = 0; i < 10; i++) //calibaration, takes 10 samples of idle gyro for avg and counters later
 		{
-			return;
+			SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, drift, 2);
+			xDrift[i] = drift[1];
+			yDrift[i] = drift[0];
+
+			SDL_Delay(20);
+			if (!runningCal)
+			{
+				return;
+			}
 		}
-    }
-	//skips first value because it is 0 for some reason. then divides by 9 as ve avergae 9 values
-    avgDriftX = std::accumulate(xDrift + 1, xDrift + 10, 0.0f) / 9.0f; 
-    avgDriftY = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
-	runningCal = false; //for threading
-	calibrated = true; //for ui
-	calibratedConName = SDL_GetGamepadNameForID(SDL_GetGamepadID(activeCon));
+		//skips first value because it is 0 for some reason. then divides by 9 as ve avergae 9 values
+		avgDriftX = std::accumulate(xDrift + 1, xDrift + 10, 0.0f) / 9.0f;
+		avgDriftY = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
+		runningCal = false; //for threading
+		calibrated = true; //for ui
+		calibratedConName = SDL_GetGamepadNameForID(SDL_GetGamepadID(activeCon));
 	}
 }
 
@@ -146,7 +148,7 @@ void UpdateLoop()
 	while (update) 
 	{
 		auto cycleStart = std::chrono::high_resolution_clock::now();
-		if (activeCon)
+		if (activeCon && gyroExist)
 		{
 			SDL_PumpEvents();
 			//checks for activation button pressed. only run on te first frame of activator pressed
@@ -330,29 +332,34 @@ void UpdateLoop()
 	}
 }
 
-
-
-
-
 void UpdateCon(int pActiveConId) //sets all relevent variable to update the controller
 {
 	//calibrated = false; //machen das beim ersten mal das nicht e´defaultet. odersagen calibriert auf folgenden controller ist besser denk ich dann ist das nur bei uncalibrated false und dann ist 0.0 auch ok für calibration weil wenn wir lable saven saven wir auch automatisch das calibrairt wurde überhauüt ez
 	activeCon = SDL_OpenGamepad(pActiveConId);
+
+
 	SDL_SensorType type = SDL_SENSOR_GYRO;
-	bool cem = SDL_GamepadHasSensor(activeCon, type);
-
-	bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
-	if (!isenab)
+	if (SDL_GamepadHasSensor(activeCon, type))
 	{
-		bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+		bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
+		if (!isenab)
+		{
+			bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+		}
+		if (SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO))
+		{
+			float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
+			dataRate = (int)rete;
+			gyroExist = true;
+		}
+		else
+		{
+			gyroExist = false;
+		}
 	}
-
-
-	float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
-	dataRate = (int)rete;
-
-
-	if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) { //TO_DO
+	else
+	{
+		gyroExist = false;
 	}
 }
 

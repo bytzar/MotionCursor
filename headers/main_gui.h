@@ -47,6 +47,7 @@ extern float avgDriftX;
 extern float avgDriftY;
 
 void UpdateLoop();
+extern bool gyroExist;
 
 extern SDL_Event event; //RUNMOVE
 

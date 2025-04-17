@@ -323,6 +323,8 @@ int mainRender(int, char**)
                 }
                 ImGui::EndPopup();
             }
+            ImGui::SameLine();
+            ImGui::Text(gyroExist ? "[gyro working]" : "[gyro not working]");
 
             ImGui::Text("sensitivity multipliyer");
             ImGui::SameLine();
