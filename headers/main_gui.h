@@ -18,18 +18,28 @@ void UpdateConList();
 extern std::vector<int> conIds;
 extern bool first;
 extern float sensitivity;
-void RemapActivator();
-void RemapClick();
-extern bool listening;
-extern bool listeningClick;
+class hotkey
+{
+public:
+	SDL_GamepadButton button = static_cast<SDL_GamepadButton>(-1);
+	SDL_GamepadAxis axis = static_cast<SDL_GamepadAxis>(-1);
+	bool trigger = false;
+	bool listening = false;
+	const char* activeLable = "<none>";
 
-extern SDL_GamepadButton buttonActivator;
-extern SDL_GamepadButton buttonClick;
-extern SDL_GamepadAxis axisActivator;
-extern SDL_GamepadAxis axisClick;
-extern bool triggerAct;
-extern bool triggerClick;
+	bool isActive(SDL_Gamepad* pController)
+	{
+		return (SDL_GetGamepadButton(pController, button) && !trigger) || (SDL_GetGamepadAxis(pController, axis) && trigger && SDL_GetGamepadAxis(pController, axis) > 16000);
+	}
+};
+void RemapHotkey(hotkey*);
 
+extern hotkey activator;
+extern hotkey click;
+extern hotkey lock;
+extern hotkey reset;
+
+extern bool globalListening;
 
 extern SDL_Gamepad* activeCon;
 
@@ -37,21 +47,26 @@ extern float avgDriftX;
 extern float avgDriftY;
 
 void UpdateLoop();
+extern bool gyroExist;
 
 extern SDL_Event event; //RUNMOVE
 
 extern bool calibrated;
+extern std::string calibratedConName;
 
+extern bool NoCentering;
 extern bool NoReqAcGyrocursor;
 extern bool NoReqAcLeftClick;
 extern bool NoGyroCursor;
 extern bool NoLeftClick; //neue konvention weil cool irgendwie. der rat der high level bools
 extern bool invX;
 extern bool invY;
+extern bool noLock;
+extern bool noReset;
 
 extern std::thread runUpdateLoop;
 
-extern std::atomic<bool> update;
+extern std::atomic<volatile bool> update;
 
 extern int theListeningOne;
 

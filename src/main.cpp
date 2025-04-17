@@ -1,3 +1,37 @@
+/*Notizblock
+* fick mein leben aber ich will machen das man keyboard und maus und so wie man will auf controller machen kann
+* orgendeinen weg finden das computer spiele die auf wasd laufen joystick support haben
+* óbwohl ich da nicht viel machen kann weil wasd ist halt einfach wasd. aber es könnte trotzdem klappen
+* diagonal ist dann einfach wd gleichzeitig zum beipiel und rest kann man machen indem man mit gyro einfach winkel änder aber dann braucht man
+* wie bei splatoon rechten stick erstmal und reset knopf
+* aber manche sachen müssen in andere branches. zb rechter stick für cursor darf noch in master aber dieses auf keyboard mappen muss neuer branch
+* und dieses reseten wenn neu gestartet wird das cursor in die mitte platziert wird muss optional sein weil wenn man windows navigiert kurz
+* loslassen damit man vernünftig klicken kann und dann von da wieder weiter oder so ein cursor lock knopf um den kurz still zu halten wahrscheinlich
+* besser weil dann hab ich kein problem mit reset on reset toggle weil villeicht will man so in ein spiel rein und dann wieder resetten nh
+* dese´wegen cursor lock besser
+* irgendeinelösunge dafür finden das self compiler wissen wonach sie suchen müssen. das maingui.h tief in external deps vergraben ist und main und maingui cpp die dateien sind.
+* klar die können nachgucken aber ist nicht sehr intuitiv
+* 
+* wenn man ein toggle user ist braucht man reset knopf, resettn beim neustart muss optional werden einfach mit checkbox, und lok cursor ist muss..? oder lass los und hab norecaccursor an
+* 
+* 
+* danach FAIL SAVES FPR NON GYROhbj
+* coll und für accesssibility wichtig wäre run on startup und minimize to system trey und ein weg das der auf neu connecteted controller reagiert falls man kein keyboard und maus hat und nicht auf refresh klicken kann
+* und was wenn der falsche controller verbunden wurde ahh so unlösbar. ich könnte ja sekündlich scannen bis ein controller verbunden ist wenn es startup program ist
+* cursor reset und cursor lock hotkeys und dann rechter stick und dann neuer branch für keyboard mapping und dann fertig denk ich mal aber erst bisschen so ohen sophisticated ui bisschen gucken ob das spaß und sinn macht.
+* dann rechter stick für cursor offset und wahrscheinlich dafür auch sensi aber jetzt erstmal nightly build
+* wenn startup program AKA es ergibt sinn das man nicht mouse oder keyboard hat (wenn nicht startup hat man ja mit kexboard und mouse gestartrt)
+* so, wenn man denn ein startup program hat dann rennt das selbstverständlich und ist nichts nichts. also scannen wir einfach alle 2 sekunden oder besser jede sekunde
+* und schicken notifications falls program in systray wenn connected oder bei startup scanning for controller
+* 
+* 
+* oder doch nciht keep it simple. das projekt soll an einen fertigen punkt kommen und dann dev aufhören.1. gucken das man updates sieht und zum updaten geprompted wird was ein albtraum sein wird  wgen cursor.ini. villeicht so nh versions nummer reinmachen und oder eine neue datei nur für 
+* kyboard rempas ja das ist besser weil wenn ich in mitoncursor neue einstellungen hab werden die alten dateien kapputt sein aber diese einstellung sind set once and done
+* also dürfen die ruhig kaputt gehen aber macros ist krassser. das muss immer klappen die dürfen nicht in motioncusro.ini und was wenn ich profile einbaue villeicht auch machen
+* hey create new profile save profile as und wenn man anderes profile will kann man eine datei selecten wäre besser denk ich
+und readme verschönern!!!!!!!!!! SEO auch in die readme auch ein screenshot damit man auf einen blick weiß was es alles kann. auch non gyro support indem ausgewählter stick cursor ontrolliert
+*/
+
 #pragma once
 
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
@@ -15,172 +49,249 @@ std::vector<int> conIds;
 float avgDriftX;
 float avgDriftY;
 bool calibrated = false;
+std::string calibratedConName = "Z";
 std::atomic<bool> runningCal = false;
 
-std::atomic<bool> update = true;
+std::atomic<volatile bool> update = true;
 std::thread runUpdateLoop;
 
+bool globalListening = false;
+hotkey activator;
+hotkey click;
+hotkey lock;
+hotkey reset;
 
-SDL_GamepadButton buttonActivator = SDL_GAMEPAD_BUTTON_MISC1; 
-SDL_GamepadButton buttonClick = SDL_GAMEPAD_BUTTON_EAST;
-SDL_GamepadAxis axisActivator; //Triggers and buttons are different datatypes, so we prepare another variable in case triggers are used
-SDL_GamepadAxis axisClick;
-bool listening = false;
-bool listeningClick = false;
-bool triggerAct = false;
-bool triggerClick = false;
+bool gyroExist = false;
+
+bool wasDown = false;
+INPUT inputs[1] = { };
 
 //the datarate for a ns pro con. should be sufficient for all controllers capped at 200hz 
-//because some controllers go a bit off the charts
+//because some controllers go a bit off the charts. this throttles the program so it does no t consume so many system ressources
 int dataRate = 200; 
 
 bool isActivation = false;
+bool toggleWasDown = false;
 
 //SDL gyro returns delta values. When the controller is on a flat surface it should return 0 on all axis. 
 //If not 10 samples are taken, averaged and saved to always be subtracted from the polled delta values
 void Calibration() 
 {
-	if (!runningCal && activeCon)
+	if (!runningCal && activeCon && gyroExist)
 	{
-	runningCal = true;
-    float drift[2] = { 0.0f, 0.0f };
-    float xDrift[10];
-    float yDrift[10];
-    for (int i = 0; i < 10; i++) //calibaration, takes 10 samples of idle gyro for avg and counters later
-    {
-        SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, drift, 2);
-        xDrift[i] = drift[1];
-        yDrift[i] = drift[0];
-
-        SDL_Delay(20); 
-		if (!runningCal) 
+		runningCal = true;
+		float drift[2] = { 0.0f, 0.0f };
+		float xDrift[10];
+		float yDrift[10];
+		for (int i = 0; i < 10; i++) //calibaration, takes 10 samples of idle gyro for avg and counters later
 		{
-			return;
+			SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, drift, 2);
+			xDrift[i] = drift[1];
+			yDrift[i] = drift[0];
+
+			SDL_Delay(20);
+			if (!runningCal)
+			{
+				return;
+			}
 		}
-    }
-	//skips first value because it is 0 for some reason. then divides by 9 as ve avergae 9 values
-    avgDriftX = std::accumulate(xDrift + 1, xDrift + 10, 0.0f) / 9.0f; 
-    avgDriftY = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
-	runningCal = false; //for threading
-	calibrated = true; //for ui
+		//skips first value because it is 0 for some reason. then divides by 9 as ve avergae 9 values
+		avgDriftX = std::accumulate(xDrift + 1, xDrift + 10, 0.0f) / 9.0f;
+		avgDriftY = std::accumulate(yDrift + 1, yDrift + 10, 0.0f) / 9.0f;
+		runningCal = false; //for threading
+		calibrated = true; //for ui
+		calibratedConName = SDL_GetGamepadNameForID(SDL_GetGamepadID(activeCon));
 	}
 }
 
+void ClickAndOrDrag() //guter name!!
+{
+	if (((click.isActive(activeCon)) && !wasDown) && !NoLeftClick)
+	{
+		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+		SendInput(1, inputs, sizeof(INPUT));
+		wasDown = true;
+	}
+	else if (wasDown && ((!click.isActive(activeCon))))
+	{
+		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+		SendInput(1, inputs, sizeof(INPUT));
+		wasDown = false;
+	}
+}
+
+void ResetCursorPos() //fun fact lock erfüllt die y reset funktionalität von splatoon. weil ich kann ja also bei splatoon geht es ja drum das du szg offsetten kannst. so du hältst hoch machst cam reset und jetzt ist dein neutral nach unten gepointed das macht man mit lock weil reset bezith sich auf ingame chrs und ja. dieses reset macht einfach nur der cursor, kein inout es ergibt auch keinen sinn bei sowas wie minecraft weil es gitb kein center so es gitb nur offset. rightstick auch dann gut
+{
+	if (!noReset && reset.isActive(activeCon))
+	{
+		int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+		SetCursorPos(screenWidth / 2, screenHeight / 2);
+	}
+}
 
 void UpdateLoop()
 {
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN); 
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
+	bool newlyLocked;
+	POINT lockCursor = { 0, 0 };
+	
 	POINT cursorPos; //datatype for cursor position
-	INPUT inputs[1] = {}; //var for simulating left click
+	//inputs[1] = {}; //var for simulating left click
 
 	inputs[0].type = INPUT_MOUSE; //var for simulating left click
-	bool wasDown = false; 
+	wasDown = false; 
 
 	const std::chrono::microseconds cycleDuration(1'000'000 / dataRate); //200hz
 	while (update) 
 	{
 		auto cycleStart = std::chrono::high_resolution_clock::now();
-		if (activeCon)
+		if (activeCon && gyroExist)
 		{
 			SDL_PumpEvents();
 			//checks for activation button pressed. only run on te first frame of activator pressed
-			if ((((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor) && !NoGyroCursor)
-			{
+			if (((activator.isActive(activeCon)) || NoReqAcGyrocursor && isActivation) && !NoGyroCursor)
+			{//eig könnte man eine methode in hotkey macen if pressed so dann muss nicht immer so eine beaheamoth if und ist lesbarer jaaa ok mach ich aber später nein jetzt uhh
+				//bool toggle an
+				//bool toggle was down an
+				newlyLocked = true;
 				isActivation = true;
-				screenWidth = GetSystemMetrics(SM_CXSCREEN); 
+				toggleWasDown = true;
+				screenWidth = GetSystemMetrics(SM_CXSCREEN);
 				screenHeight = GetSystemMetrics(SM_CYSCREEN);
 				cursorPos.x = screenWidth / 2; 
 				cursorPos.y = screenHeight / 2;
-				SetCursorPos(screenWidth / 2, screenHeight / 2); //reset cursor position to center of screen
+				if (!NoCentering)
+				{
+					SetCursorPos(screenWidth / 2, screenHeight / 2); //reset cursor position to center of screen
+				}
 				float data[2] = { 0.0f, 0.0f }; //Reset delta yaw and pitch for cursor. this is the total delta from the position from which the activator was pressed. an accumalation of all values read since the first activation so to say the current 2d state of the controller in space
 				float DYNdata[2] = { 0.0f, 0.0f }; //Reset read delta yaw and pitch. this is only the momentary delta
 				const std::chrono::microseconds cycleDurationU(1'000'000 / dataRate); //runs this loop only at 200hz to prevent cpu burn
-				while (((SDL_GetGamepadButton(activeCon, buttonActivator) && !triggerAct) || (SDL_GetGamepadAxis(activeCon, axisActivator) && triggerAct && SDL_GetGamepadAxis(activeCon, axisActivator) > 16000)) || NoReqAcGyrocursor)
+				while ((((activator.isActive(activeCon)) || (NoReqAcGyrocursor && isActivation)) && update) && !NoGyroCursor)
 				{
-					auto cycleStartU = std::chrono::high_resolution_clock::now();
+					auto cycleStartU = std::chrono::high_resolution_clock::now(); //muss höher TDODOTOSoTODO
 					SDL_PumpEvents(); //since gyro isnt an event (the while (pollevent) ignores it) and i run ui at a target of 15 fps we need to pump here to have proper 200hz in the update loop even though its not threadsafe but eh
-					SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2); //read delta gyro data and place it in our delta array
-
-					//subtracts drift
-					DYNdata[1] -= avgDriftX;
-					DYNdata[0] -= avgDriftY;
-
-					//inverts
-					if (invX)
+					if (!(activator.isActive(activeCon)) && (NoReqAcGyrocursor && toggleWasDown))
 					{
-						DYNdata[1] *= -1;
+						toggleWasDown = false;
 					}
-					if (invY)
+					else if ((activator.isActive(activeCon)) && (NoReqAcGyrocursor && !toggleWasDown))
 					{
-						DYNdata[0] *= -1;
+						isActivation = false;
+						toggleWasDown = true;
+						while ((activator.isActive(activeCon)) && update)
+						{ 
+							SDL_Delay(200);
+						}
+						break;
 					}
-
-					const float threashold = 0.02f; //as drift is not constant it is not zeroed out but very small. this threashold throws out deltas presumed drift
-
-					if (DYNdata[0] > threashold || DYNdata[0] < -threashold) //discard if movement is so minor it is probably drift
+					ClickAndOrDrag();
+					ResetCursorPos();
+					if (!(!noLock && lock.isActive(activeCon))) //if locking is on and locking is pressed NOT; then do not lock
 					{
-						data[0] += DYNdata[0];
+						SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2); //read delta gyro data and place it in our delta array
+
+						float data[2] = { 0.0f, 0.0f };
+						//subtracts drift
+						DYNdata[1] -= avgDriftX;
+						DYNdata[0] -= avgDriftY;
+
+						//inverts
+						if (!invX)
+						{
+							DYNdata[1] *= -1;
+						}
+						if (!invY)
+						{
+							DYNdata[0] *= -1;
+						}
+
+						const float threashold = 0.02f; //as drift is not constant it is not zeroed out but very small. this threashold throws out deltas presumed drift
+
+						if (DYNdata[0] > threashold || DYNdata[0] < -threashold) //discard if movement is so minor it is probably drift
+						{
+							data[0] = DYNdata[0]; //+=
+						}
+						if (DYNdata[1] > threashold || DYNdata[1] < -threashold)
+						{
+							data[1] = DYNdata[1];
+						}
+
+						//checks if values were negative as calculation calculates in absolutes
+						int nill = 1;
+						if (data[1] < 0) { nill = -1; }
+
+						int nuhull = 1;
+						if (data[0] < 0) { nuhull = -1; }
+
+						//predetermined max movement that should be neccessary to go from 0 to edge of screen
+
+						float MaxGyroForComforty = 40.0f;
+						float MaxGyroForComfortx = 40.0f;
+
+						//if at edge, do not add to data. this way you dont have to move all the way back to come back from the edge
+						//if you moved way outside bounce you would normally hae to move the same distance back. this way you dont
+						if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
+						if (data[1] < -MaxGyroForComforty) { data[1] = -MaxGyroForComforty; }
+
+						if (data[0] >= MaxGyroForComfortx) { data[0] = MaxGyroForComfortx; }
+						if (data[0] < -MaxGyroForComfortx) { data[0] = -MaxGyroForComfortx; }
+
+						float newposx = 0.0f;
+						float newposy = 0.0f;
+
+						if (!data[1] == 0)
+						{
+							data[1] = (((abs(data[1]) / MaxGyroForComforty) * (float)(screenWidth / 2)) * nill);
+						}
+						if (!data[0] == 0)
+						{
+							data[0] = (((abs(data[0]) / MaxGyroForComfortx) * (float)(screenHeight / 2)) * nuhull);
+						}
+
+						GetCursorPos(&cursorPos);
+
+						cursorPos.y = -newposy + screenHeight / 2;
+						cursorPos.x = -newposx + screenWidth / 2;
+
+						// Move the mouse
+						//SetCursorPos(cursorPos.x, cursorPos.y);
+						INPUT iput = { 0 };
+						iput.type = INPUT_MOUSE;
+						iput.mi.dx = data[1] * sensitivity;
+						iput.mi.dy = data[0] * sensitivity;
+						iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
+						SendInput(1, &iput, sizeof(INPUT));
 					}
-					if (DYNdata[1] > threashold || DYNdata[1] < -threashold)
+					else if (false) //weg weil unnötig macht aber auch nur cursor also blockt per se nicht mouse input also ingame bringt nichtmal was aber false jemand als dev reinkommen will und anmachen will geht auch ist jetzt auch nicht schlimm per se per se per se
 					{
-						data[1] += DYNdata[1];
+						if (newlyLocked)
+						{
+							GetCursorPos(&lockCursor);
+							newlyLocked = false;
+						}
+						SetCursorPos(lockCursor.x, lockCursor.y);
 					}
-
-					//checks if values were negative as calculation calculates in absolutes
-					int nill = 1;
-					if (data[1] < 0) { nill = -1; }
-
-					int nuhull = 1;
-					if (data[0] < 0) { nuhull = -1; }
-
-					//predetermined max movement that should be neccessary to go from 0 to edge of screen
-
-					float MaxGyroForComforty = 30.0f / sensitivity;
-					float MaxGyroForComfortx = 30.0f / sensitivity;
-
-					//if at edge, do not add to data. this way you dont have to move all the way back to come back from the edge
-					//if you moved way outside bounce you would normally hae to move the same distance back. this way you dont
-					if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
-					if (data[1] < -MaxGyroForComforty) { data[1] = -MaxGyroForComforty; }
-
-					if (data[0] >= MaxGyroForComfortx) { data[0] = MaxGyroForComfortx; }
-					if (data[0] < -MaxGyroForComfortx) { data[0] = -MaxGyroForComfortx; }
-
-					float newposx = 0.0f;
-					float newposy = 0.0f;
-
-					if (!data[1] == 0)
-					{
-						newposx = (((abs(data[1]) / MaxGyroForComforty) * (float)(screenWidth / 2)) * nill);
-					}
-					if (!data[0] == 0)
-					{
-						newposy = (((abs(data[0]) / MaxGyroForComfortx) * (float)(screenHeight / 2)) * nuhull);
-					}
-
-					GetCursorPos(&cursorPos);
-
-					cursorPos.y = -newposy + screenHeight / 2;
-					cursorPos.x = -newposx + screenWidth / 2;
-
-					// Move the mouse
-					SetCursorPos(cursorPos.x, cursorPos.y);
-
-					//implemented this way to enable hold and drag functiponality
-					if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && !NoLeftClick)
+					
+					//implemented this way to enable hold and drag functiponality, komplett eigene funktion mit check if activated villeicht auf anderem thread sogar
+					/*
+					if (((click.isActive(activeCon)) && !wasDown) && !NoLeftClick)
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = true;
 					}
-					else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick))))
+					else if (wasDown && !click.isActive(activeCon))
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = false;
 					}
+					*/
+					
 					auto cycleEndU = std::chrono::high_resolution_clock::now();
 					auto elapsedU = std::chrono::duration_cast<std::chrono::microseconds>(cycleEndU - cycleStartU);
 
@@ -193,19 +304,23 @@ void UpdateLoop()
 				}
 			}
 			isActivation = false;
-			//in case do not require activation for left click is on
-			if ((((SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick && SDL_GetGamepadAxis(activeCon, axisClick) > 16000)) && !wasDown) && NoReqAcLeftClick && !NoLeftClick)
+			/*
+			if (((click.isActive(activeCon)) && !wasDown) && NoReqAcLeftClick && !NoLeftClick)
 			{
 				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 				SendInput(1, inputs, sizeof(INPUT));
 				wasDown = true;
 			}
-			else if (wasDown && (((!SDL_GetGamepadButton(activeCon, buttonClick) && !triggerClick) || (!SDL_GetGamepadAxis(activeCon, axisClick) && triggerClick))) && NoReqAcLeftClick)
+			else if (wasDown && ((!click.isActive(activeCon))) && NoReqAcLeftClick)
 			{
 				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 				SendInput(1, inputs, sizeof(INPUT));
 				wasDown = false;
 			}
+			*/
+			//in case do not require activation for left click is on
+			if (NoReqAcLeftClick) { ClickAndOrDrag(); }
+			ResetCursorPos();
 		}
 		auto cycleEnd = std::chrono::high_resolution_clock::now();
 		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(cycleEnd - cycleStart);
@@ -217,27 +332,34 @@ void UpdateLoop()
 	}
 }
 
-
-
 void UpdateCon(int pActiveConId) //sets all relevent variable to update the controller
 {
-	calibrated = false;
+	//calibrated = false; //machen das beim ersten mal das nicht e´defaultet. odersagen calibriert auf folgenden controller ist besser denk ich dann ist das nur bei uncalibrated false und dann ist 0.0 auch ok für calibration weil wenn wir lable saven saven wir auch automatisch das calibrairt wurde überhauüt ez
 	activeCon = SDL_OpenGamepad(pActiveConId);
+
+
 	SDL_SensorType type = SDL_SENSOR_GYRO;
-	bool cem = SDL_GamepadHasSensor(activeCon, type);
-
-	bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
-	if (!isenab)
+	if (SDL_GamepadHasSensor(activeCon, type))
 	{
-		bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+		bool isenab = SDL_GamepadSensorEnabled(activeCon, type);
+		if (!isenab)
+		{
+			bool sen = SDL_SetGamepadSensorEnabled(activeCon, type, true);
+		}
+		if (SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO))
+		{
+			float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
+			dataRate = (int)rete;
+			gyroExist = true;
+		}
+		else
+		{
+			gyroExist = false;
+		}
 	}
-
-
-	float rete = SDL_GetGamepadSensorDataRate(activeCon, type);
-	dataRate = (int)rete;
-
-
-	if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
+	else
+	{
+		gyroExist = false;
 	}
 }
 
@@ -294,108 +416,125 @@ void UpdateConList()
 	first = true;
 }
 
-int main() //main thread reads settings and then does ui
+void LoadHotkey4mFile(std::ifstream* pFile, hotkey* pHótkey) //gute konvention!! Exzellent
 {
+	int temporus;
+	(*pFile) >> temporus;
+	(*pHótkey).button = static_cast<SDL_GamepadButton>(temporus);
+
+	(*pFile) >> temporus;
+	(*pHótkey).axis = static_cast<SDL_GamepadAxis>(temporus);
+
+	(*pFile) >> (*pHótkey).trigger;//falls das unten sov nicht klappt methode in klasse machn
+	(*pHótkey).activeLable = (*pHótkey).trigger ? SDL_GetGamepadStringForAxis((*pHótkey).axis) : SDL_GetGamepadStringForButton((*pHótkey).button);
+}
+
+int main() //main thread reads settings and then does ui :: todo falls lesen errort wegen neue version von save management dann soll die datei entweder einfach ignoriert werden, einfach variablen zurücksetzen und darauf hoffen das user norma beendet und von so alles neu macht. oder datei löschen aber da bin ich gegen weil was wenn bug und rm rf C:. einfach ignorieren oder datei mit null fülllen ja das besser einfach einmal komplett raus lesen damit leeer
+{
+	activator.button = static_cast<SDL_GamepadButton>(15); //SDL_GAMEPAD_BUTTON_MISC1 einfach richtig gute arbeit gut gemacht
+	activator.activeLable = SDL_GetGamepadStringForButton(activator.button);
+
+	click.button = static_cast<SDL_GamepadButton>(SDL_GAMEPAD_BUTTON_EAST);
+	click.activeLable = SDL_GetGamepadStringForButton(click.button);
+
 	if (std::ifstream("MotionCursor.ini"))
 	{
 		std::ifstream file("MotionCursor.ini");
-		
-		int temporus;
 
-		file >> fontSize;
-		file >> avgDriftX;
-		file >> avgDriftY;
-
-		if (avgDriftX != 0 && avgDriftY != 0) //if controller has no drift then it will mistakenly think its not calibarated but no biggie
+		int p;
+		file >> p;
+		if (p == 17461746) //kann die zahl mit jeder neuen version ändern damit die leute keine kaputten alten savesreinlesen
 		{
-			calibrated = true; //for ui purposes
+			int temporus;
+
+			file >> fontSize;
+			file >> avgDriftX;
+			file >> avgDriftY;
+			file >> sensitivity;
+
+			//save hotkey func
+
+			/*
+			file >> temporus;
+			activator.button = static_cast<SDL_GamepadButton>(temporus);
+
+			file >> temporus;
+			activator.axis = static_cast<SDL_GamepadAxis>(temporus);
+
+			file >> activator.trigger;//falls das unten sov nicht klappt methode in klasse machn
+			activator.activeLable = activator.trigger ? SDL_GetGamepadStringForAxis(activator.axis) : SDL_GetGamepadStringForButton(activator.button);
+			*/
+
+			LoadHotkey4mFile(&file, &activator);
+			LoadHotkey4mFile(&file, &click);
+			LoadHotkey4mFile(&file, &reset);
+			LoadHotkey4mFile(&file, &lock);
+			file >> noReset;
+			file >> noLock;
+
+			/*
+			file >> temporus;
+			click.button = static_cast<SDL_GamepadButton>(temporus);
+
+			file >> temporus;
+			click.axis = static_cast<SDL_GamepadAxis>(temporus);
+
+			file >> click.trigger;//falls das unten sov nicht klappt methode in klasse machn
+			click.activeLable = click.trigger ? SDL_GetGamepadStringForAxis(click.axis) : SDL_GetGamepadStringForButton(click.button);
+			*/
+			
+
+			file >> NoReqAcLeftClick;
+			file >> NoLeftClick;
+			file >> NoGyroCursor;
+			file >> NoReqAcGyrocursor;
+			file >> invX;
+			file >> invY;
+			file >> NoCentering;
+			std::string tempus;
+			bool firsTime = true;
+			while (file >> tempus)
+			{
+				if (firsTime) { calibratedConName = tempus; firsTime = false; }
+				else { calibratedConName += " " + tempus; }
+			}
+			calibrated = calibratedConName.compare("Z") != 0; //der waix mit dem offbrand amazon controller dessen name tatsächlich Z ist :: if calibratedcon name exists then the configuration for that con is saved apperantly
 		}
-
-		file >> sensitivity;
-
-		file >> temporus;
-		buttonActivator = static_cast<SDL_GamepadButton>(temporus);
-
-		file >> temporus;
-		buttonClick = static_cast<SDL_GamepadButton>(temporus);
-
-		file >> temporus;
-		axisActivator = static_cast<SDL_GamepadAxis>(temporus);
-
-		file >> temporus;
-		axisClick = static_cast<SDL_GamepadAxis>(temporus);
-
-		file >> triggerAct;
-		file >> triggerClick;
-		file >> NoReqAcLeftClick;
-		file >> NoLeftClick;
-		file >> NoGyroCursor;
 	}
 	SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 	mainRender(NULL, nullptr);
 	return 0;
 }
 
-void RemapActivator()
+void RemapHotkey(hotkey* pHotkey) //muss als pointer shicken?
 {
 	const int timeout_ms = 7000; // 7 seconds
 	Uint64 start_time = SDL_GetTicks();
-	listening = true;
+	(*pHotkey).listening = true;
+	globalListening = true;
 	while (SDL_GetTicks() - start_time < timeout_ms) {
 
 		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (true) { // ehrlich einfah so lassen klappt ja ka SDL_WaitEventTimeout(&event, remaining_time) kann sein das probleme davon kommen das nicht auf main thread ist
-
+		if (true)
+		{ // ehrlich einfah so lassen klappt ja ka SDL_WaitEventTimeout(&event, remaining_time) kann sein das probleme davon kommen das nicht auf main thread ist
 			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-				buttonActivator = static_cast<SDL_GamepadButton>(event.gbutton.button);
-				const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
-				triggerAct = false;
+				(*pHotkey).button = static_cast<SDL_GamepadButton>(event.gbutton.button);
+				(*pHotkey).activeLable = SDL_GetGamepadStringForButton((*pHotkey).button);
+				(*pHotkey).trigger = false;
 				break;
 			}
 			else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
 				if (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || event.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
 					if (event.gaxis.value > 16000) {
-						axisActivator = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
-						triggerAct = true;
-						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger";
+						(*pHotkey).axis = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
+						(*pHotkey).activeLable = SDL_GetGamepadStringForAxis((*pHotkey).axis);
+						(*pHotkey).trigger = true;
 						break;
 					}
 				}
 			}
 		}
 	}
-	listening = false;
-
-}
-//code duplication, i could fix but realistically not so important
-void RemapClick()
-{
-	const int timeout_ms = 7000; // 7 seconds
-	Uint64 start_time = SDL_GetTicks();
-	listeningClick = true;
-
-	while (SDL_GetTicks() - start_time < timeout_ms) {
-
-		int remaining_time = timeout_ms - (SDL_GetTicks() - start_time);
-		if (true) { //SDL_WaitEventTimeout(&event, remaining_time)
-
-			if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-				buttonClick = static_cast<SDL_GamepadButton>(event.gbutton.button);
-				const char* buttonName = SDL_GetGamepadStringForButton(buttonActivator);
-				triggerClick = false;
-				break;
-			}
-			else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
-				if (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || event.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
-					if (event.gaxis.value > 16000) {
-						axisClick = static_cast<SDL_GamepadAxis>(event.gaxis.axis);
-						triggerClick = true;
-						std::string triggerName = (event.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) ? "lefttrigger" : "righttrigger";
-						break;
-					}
-				}
-			}
-		}
-	}
-	listeningClick = false;
+	(*pHotkey).listening = false;
+	globalListening = false;
 }
