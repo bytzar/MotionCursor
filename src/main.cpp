@@ -118,10 +118,23 @@ void ClickAndOrDrag() //guter name!!
 	}
 }
 
+void ResetCursorPos() //fun fact lock erfüllt die y reset funktionalität von splatoon. weil ich kann ja also bei splatoon geht es ja drum das du szg offsetten kannst. so du hältst hoch machst cam reset und jetzt ist dein neutral nach unten gepointed das macht man mit lock weil reset bezith sich auf ingame chrs und ja. dieses reset macht einfach nur der cursor, kein inout es ergibt auch keinen sinn bei sowas wie minecraft weil es gitb kein center so es gitb nur offset. rightstick auch dann gut
+{
+	if (!noReset && reset.isActive(activeCon))
+	{
+		int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+		SetCursorPos(screenWidth / 2, screenHeight / 2);
+	}
+}
+
 void UpdateLoop()
 {
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN); 
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	bool newlyLocked;
+	POINT lockCursor = { 0, 0 };
 	
 	POINT cursorPos; //datatype for cursor position
 	//inputs[1] = {}; //var for simulating left click
@@ -141,6 +154,7 @@ void UpdateLoop()
 			{//eig könnte man eine methode in hotkey macen if pressed so dann muss nicht immer so eine beaheamoth if und ist lesbarer jaaa ok mach ich aber später nein jetzt uhh
 				//bool toggle an
 				//bool toggle was down an
+				newlyLocked = true;
 				isActivation = true;
 				toggleWasDown = true;
 				screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -173,6 +187,7 @@ void UpdateLoop()
 						break;
 					}
 					ClickAndOrDrag();
+					ResetCursorPos();
 					if (!(!noLock && lock.isActive(activeCon))) //if locking is on and locking is pressed NOT; then do not lock
 					{
 						SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2); //read delta gyro data and place it in our delta array
@@ -249,6 +264,15 @@ void UpdateLoop()
 						iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
 						SendInput(1, &iput, sizeof(INPUT));
 					}
+					else if (false) //weg weil unnötig macht aber auch nur cursor also blockt per se nicht mouse input also ingame bringt nichtmal was aber false jemand als dev reinkommen will und anmachen will geht auch ist jetzt auch nicht schlimm per se per se per se
+					{
+						if (newlyLocked)
+						{
+							GetCursorPos(&lockCursor);
+							newlyLocked = false;
+						}
+						SetCursorPos(lockCursor.x, lockCursor.y);
+					}
 					
 					//implemented this way to enable hold and drag functiponality, komplett eigene funktion mit check if activated villeicht auf anderem thread sogar
 					/*
@@ -294,6 +318,7 @@ void UpdateLoop()
 			*/
 			//in case do not require activation for left click is on
 			if (NoReqAcLeftClick) { ClickAndOrDrag(); }
+			ResetCursorPos();
 		}
 		auto cycleEnd = std::chrono::high_resolution_clock::now();
 		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(cycleEnd - cycleStart);
@@ -384,6 +409,19 @@ void UpdateConList()
 	first = true;
 }
 
+void LoadHotkey4mFile(std::ifstream* pFile, hotkey* pHótkey) //gute konvention!! Exzellent
+{
+	int temporus;
+	(*pFile) >> temporus;
+	(*pHótkey).button = static_cast<SDL_GamepadButton>(temporus);
+
+	(*pFile) >> temporus;
+	(*pHótkey).axis = static_cast<SDL_GamepadAxis>(temporus);
+
+	(*pFile) >> (*pHótkey).trigger;//falls das unten sov nicht klappt methode in klasse machn
+	(*pHótkey).activeLable = (*pHótkey).trigger ? SDL_GetGamepadStringForAxis((*pHótkey).axis) : SDL_GetGamepadStringForButton((*pHótkey).button);
+}
+
 int main() //main thread reads settings and then does ui :: todo falls lesen errort wegen neue version von save management dann soll die datei entweder einfach ignoriert werden, einfach variablen zurücksetzen und darauf hoffen das user norma beendet und von so alles neu macht. oder datei löschen aber da bin ich gegen weil was wenn bug und rm rf C:. einfach ignorieren oder datei mit null fülllen ja das besser einfach einmal komplett raus lesen damit leeer
 {
 	activator.button = static_cast<SDL_GamepadButton>(15); //SDL_GAMEPAD_BUTTON_MISC1 einfach richtig gute arbeit gut gemacht
@@ -398,7 +436,7 @@ int main() //main thread reads settings and then does ui :: todo falls lesen err
 
 		int p;
 		file >> p;
-		if (p == 1746) //kann die zahl mit jeder neuen version ändern damit die leute keine kaputten alten savesreinlesen
+		if (p == 17461746) //kann die zahl mit jeder neuen version ändern damit die leute keine kaputten alten savesreinlesen
 		{
 			int temporus;
 
@@ -407,6 +445,9 @@ int main() //main thread reads settings and then does ui :: todo falls lesen err
 			file >> avgDriftY;
 			file >> sensitivity;
 
+			//save hotkey func
+
+			/*
 			file >> temporus;
 			activator.button = static_cast<SDL_GamepadButton>(temporus);
 
@@ -415,7 +456,16 @@ int main() //main thread reads settings and then does ui :: todo falls lesen err
 
 			file >> activator.trigger;//falls das unten sov nicht klappt methode in klasse machn
 			activator.activeLable = activator.trigger ? SDL_GetGamepadStringForAxis(activator.axis) : SDL_GetGamepadStringForButton(activator.button);
+			*/
 
+			LoadHotkey4mFile(&file, &activator);
+			LoadHotkey4mFile(&file, &click);
+			LoadHotkey4mFile(&file, &reset);
+			LoadHotkey4mFile(&file, &lock);
+			file >> noReset;
+			file >> noLock;
+
+			/*
 			file >> temporus;
 			click.button = static_cast<SDL_GamepadButton>(temporus);
 
@@ -424,6 +474,8 @@ int main() //main thread reads settings and then does ui :: todo falls lesen err
 
 			file >> click.trigger;//falls das unten sov nicht klappt methode in klasse machn
 			click.activeLable = click.trigger ? SDL_GetGamepadStringForAxis(click.axis) : SDL_GetGamepadStringForButton(click.button);
+			*/
+			
 
 			file >> NoReqAcLeftClick;
 			file >> NoLeftClick;

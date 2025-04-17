@@ -68,6 +68,13 @@ void renderHotkey(const char* pRemap, hotkey* pHotkey)
     }
 }
 
+void SaveHotkey2File(std::ofstream* pFile, hotkey pHotkey)
+{
+    (*pFile) << pHotkey.button << "\n";
+    (*pFile) << pHotkey.axis << "\n";
+    (*pFile) << pHotkey.trigger << "\n";
+}
+
 int mainRender(int, char**)
 {
     UpdateConList();
@@ -437,7 +444,7 @@ int mainRender(int, char**)
 
     std::ofstream file("MotionCursor.ini");
 
-    file << 1746 << "\n"; //file integrity check
+    file << 17461746 << "\n"; //file integrity check
     file << fontSize << "\n";
     file << avgDriftX << "\n";
     file << avgDriftY << "\n";
@@ -450,15 +457,25 @@ int mainRender(int, char**)
     file << triggerAct << "\n";
     file << triggerClick << "\n";
     */
-    file << activator.button << "\n";
-    file << activator.axis << "\n";
-    //file << activator.activeLable << "\n";
-    file << activator.trigger << "\n";
 
-    file << click.button << "\n";
-    file << click.axis << "\n";
-    //file << click.activeLable << "\n";
-    file << click.trigger << "\n";
+    SaveHotkey2File(&file, activator);
+    SaveHotkey2File(&file, click);
+    SaveHotkey2File(&file, reset);
+    SaveHotkey2File(&file, lock);
+    file << noReset << "\n";
+    file << noLock << "\n";
+
+
+
+    //file << activator.button << "\n";
+    //file << activator.axis << "\n";
+    ////file << activator.activeLable << "\n";
+    //file << activator.trigger << "\n";
+
+    //file << click.button << "\n";
+    //file << click.axis << "\n";
+    ////file << click.activeLable << "\n";
+    //file << click.trigger << "\n";
     
     file << NoReqAcLeftClick << "\n";
     file << NoLeftClick << "\n";
