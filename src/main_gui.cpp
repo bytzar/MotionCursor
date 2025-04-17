@@ -36,16 +36,38 @@ float sensitivity = 1;
 int theListeningOne = -1;
 
 bool NoCentering = false;
-
 bool NoReqAcGyrocursor = false;
 bool NoReqAcLeftClick = false;
 bool NoGyroCursor = false;
 bool NoLeftClick = false; 
 bool invX = false;
 bool invY = false;
+bool noLock = true;
+bool noReset = true;
 float fontSize = 2.0f;
 SDL_Event event;
 // Main code
+
+void renderHotkey(const char* pRemap, hotkey* pHotkey)
+{
+    if (ImGui::Button(pRemap) && !globalListening) //als erringerung fpr todo global listening damit ich nicht für jeden hotkey && !listeningheoitkey machen muss für ui dann musss natürlich aber dann steht das nur einmal im if
+    {
+        if (runRemap.joinable()) {
+            runRemap.join();  // Make sure old thread is done
+        }
+        runRemap = std::thread(RemapHotkey, pHotkey);
+    }
+    ImGui::SameLine();
+    if ((*pHotkey).listening)
+    {
+        ImGui::TextUnformatted("<listening>");
+    }
+    else
+    {
+        ImGui::TextUnformatted((*pHotkey).activeLable); //das zu activelable machen 
+    }
+}
+
 int mainRender(int, char**)
 {
     UpdateConList();
@@ -302,6 +324,8 @@ int mainRender(int, char**)
             ImGui::SameLine();
             ImGui::SliderFloat("  ", &sensitivity, 0.001f, 5.0f);
            
+
+            /*
             if (ImGui::Button("remap activation button") && !globalListening) 
             {
                 if (runRemap.joinable()) {
@@ -318,8 +342,10 @@ int mainRender(int, char**)
 			{
 				ImGui::TextUnformatted(activator.activeLable);
 			}
+            */
+            
 
-
+            /*
             if (ImGui::Button("remap click button") && !globalListening) //als erringerung fpr todo global listening damit ich nicht für jeden hotkey && !listeningheoitkey machen muss für ui dann musss natürlich aber dann steht das nur einmal im if
             {
                 if (runRemap.joinable()) {
@@ -337,6 +363,12 @@ int mainRender(int, char**)
 			{
 				ImGui::TextUnformatted(click.activeLable); //das zu activelable machen 
 			}
+            */
+            
+            renderHotkey("remap activation button", &activator);
+            renderHotkey("remap click button", &click);
+
+
 
             //uncoooment if you want this setting but cant reccommend it nur probleme weil dann mouse blockiert und wenn gyro nicht richtig klaoppt doof ImGui::Checkbox("Do not require activation for gyro cursor", &NoReqAcGyrocursor); //default off muss immernoch calibration static text fixxen aber ez einfach if svgx nicht 0 oder überhaupt initialisiert dann soll da stehen cablibrated
             ImGui::Checkbox("do not require activation for left clicking", &NoReqAcLeftClick); //default off 
@@ -344,14 +376,25 @@ int mainRender(int, char**)
             ImGui::Checkbox("disable centering cursor on activation", &NoCentering); //save to file TODO
             ImGui::Checkbox("disable left clicking", &NoLeftClick); //default off
             ImGui::Checkbox("disable gyro cursor", &NoGyroCursor); //default off
+
+
+            ImGui::Checkbox("disable reset button", &noReset); //default off
+            ImGui::Checkbox("disable lock button", &noLock); //default off
             
             //resetbutton
                 //lock
             ImGui::Checkbox("invert x axis gyro", &invX); //dont save as it shouldnt be needed most times
             ImGui::Checkbox("invert y axis gyro", &invY); //default off
+
+            renderHotkey("remap reset button", &reset);
+            renderHotkey("remap lock button", &lock);
+
+
             ImGui::TextUnformatted("\nfor calibration, place your controller on a flat surface and hit 'calibrate'");
             ImGui::TextUnformatted("calibration takes less than a second and is controller specific, only latest calibration is saved");
             ImGui::TextUnformatted("calibrating only affect this program, not the controller");
+
+
             //ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs gucken ob das noch passiert");
 
             /* display framerate

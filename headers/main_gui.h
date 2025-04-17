@@ -18,22 +18,6 @@ void UpdateConList();
 extern std::vector<int> conIds;
 extern bool first;
 extern float sensitivity;
-//void RemapActivator();
-void RemapClick();
-
-
-/*
-extern bool listening;
-extern bool listeningClick;
-
-extern SDL_GamepadButton buttonActivator;
-extern SDL_GamepadButton buttonClick;
-extern SDL_GamepadAxis axisActivator;
-extern SDL_GamepadAxis axisClick;
-extern bool triggerAct;
-extern bool triggerClick;
-*/
-
 class hotkey
 {
 public:
@@ -41,7 +25,7 @@ public:
 	SDL_GamepadAxis axis = static_cast<SDL_GamepadAxis>(-1);
 	bool trigger = false;
 	bool listening = false;
-	const char* activeLable = "Z";
+	const char* activeLable = "<none>";
 
 	bool isActive(SDL_Gamepad* pController)
 	{
@@ -52,6 +36,8 @@ void RemapHotkey(hotkey*);
 
 extern hotkey activator;
 extern hotkey click;
+extern hotkey lock;
+extern hotkey reset;
 
 extern bool globalListening;
 
@@ -74,6 +60,8 @@ extern bool NoGyroCursor;
 extern bool NoLeftClick; //neue konvention weil cool irgendwie. der rat der high level bools
 extern bool invX;
 extern bool invY;
+extern bool noLock;
+extern bool noReset;
 
 extern std::thread runUpdateLoop;
 

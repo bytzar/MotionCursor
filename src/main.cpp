@@ -1,6 +1,4 @@
 /*Notizblock
-* controller calibrated lable safen, die neuen einstellungen safen sowie invert weil warum nicht. machen das calibrated on bootup stimmt
-* und nicht zu not calibrated defaulete
 * fick mein leben aber ich will machen das man keyboard und maus und so wie man will auf controller machen kann
 * orgendeinen weg finden das computer spiele die auf wasd laufen joystick support haben
 * óbwohl ich da nicht viel machen kann weil wasd ist halt einfach wasd. aber es könnte trotzdem klappen
@@ -16,19 +14,22 @@
 * 
 * wenn man ein toggle user ist braucht man reset knopf, resettn beim neustart muss optional werden einfach mit checkbox, und lok cursor ist muss..? oder lass los und hab norecaccursor an
 * 
-* immediate todo calibration text 
-* savefile motioncursor.ini updaten für die neuen sachen wie calibrationconlable und die optionen wie toglle
 * 
 * danach
-* 
-* cursor reset und cursor lock hotkeys
+* coll und für accesssibility wichtig wäre run on startup und minimize to system trey und ein weg das der auf neu connecteted controller reagiert falls man kein keyboard und maus hat und nicht auf refresh klicken kann
+* und was wenn der falsche controller verbunden wurde ahh so unlösbar. ich könnte ja sekündlich scannen bis ein controller verbunden ist wenn es startup program ist
+* cursor reset und cursor lock hotkeys und dann rechter stick und dann neuer branch für keyboard mapping und dann fertig denk ich mal aber erst bisschen so ohen sophisticated ui bisschen gucken ob das spaß und sinn macht.
 * dann rechter stick für cursor offset und wahrscheinlich dafür auch sensi aber jetzt erstmal nightly build
+* wenn startup program AKA es ergibt sinn das man nicht mouse oder keyboard hat (wenn nicht startup hat man ja mit kexboard und mouse gestartrt)
+* so, wenn man denn ein startup program hat dann rennt das selbstverständlich und ist nichts nichts. also scannen wir einfach alle 2 sekunden oder besser jede sekunde
+* und schicken notifications falls program in systray wenn connected oder bei startup scanning for controller
+* 
 * 
 * oder doch nciht keep it simple. das projekt soll an einen fertigen punkt kommen und dann dev aufhören.1. gucken das man updates sieht und zum updaten geprompted wird was ein albtraum sein wird  wgen cursor.ini. villeicht so nh versions nummer reinmachen und oder eine neue datei nur für 
 * kyboard rempas ja das ist besser weil wenn ich in mitoncursor neue einstellungen hab werden die alten dateien kapputt sein aber diese einstellung sind set once and done
 * also dürfen die ruhig kaputt gehen aber macros ist krassser. das muss immer klappen die dürfen nicht in motioncusro.ini und was wenn ich profile einbaue villeicht auch machen
 * hey create new profile save profile as und wenn man anderes profile will kann man eine datei selecten wäre besser denk ich
-und readme verschönern!!!!!!!!!! SEO auch
+und readme verschönern!!!!!!!!!! SEO auch in die readme auch ein screenshot damit man auf einen blick weiß was es alles kann. auch non gyro support indem ausgewählter stick cursor ontrolliert
 */
 
 #pragma once
@@ -55,23 +56,16 @@ std::atomic<volatile bool> update = true;
 std::thread runUpdateLoop;
 
 bool globalListening = false;
-
-/*
-SDL_GamepadButton buttonActivator = SDL_GAMEPAD_BUTTON_MISC1; 
-SDL_GamepadButton buttonClick = SDL_GAMEPAD_BUTTON_EAST;
-SDL_GamepadAxis axisActivator; //Triggers and buttons are different datatypes, so we prepare another variable in case triggers are used
-SDL_GamepadAxis axisClick;
-bool listening = false;
-bool listeningClick = false; //entfernen alles auf listening mahcne. aus ui gründen nicht möglich
-bool triggerAct = false;
-bool triggerClick = false;
-*/
 hotkey activator;
 hotkey click;
+hotkey lock;
+hotkey reset;
 
+bool wasDown = false;
+INPUT inputs[1] = { };
 
 //the datarate for a ns pro con. should be sufficient for all controllers capped at 200hz 
-//because some controllers go a bit off the charts
+//because some controllers go a bit off the charts. this throttles the program so it does no t consume so many system ressources
 int dataRate = 200; 
 
 bool isActivation = false;
@@ -108,17 +102,32 @@ void Calibration()
 	}
 }
 
+void ClickAndOrDrag() //guter name!!
+{
+	if (((click.isActive(activeCon)) && !wasDown) && !NoLeftClick)
+	{
+		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+		SendInput(1, inputs, sizeof(INPUT));
+		wasDown = true;
+	}
+	else if (wasDown && ((!click.isActive(activeCon))))
+	{
+		inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+		SendInput(1, inputs, sizeof(INPUT));
+		wasDown = false;
+	}
+}
 
 void UpdateLoop()
 {
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN); 
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
+	
 	POINT cursorPos; //datatype for cursor position
-	INPUT inputs[1] = {}; //var for simulating left click
+	//inputs[1] = {}; //var for simulating left click
 
 	inputs[0].type = INPUT_MOUSE; //var for simulating left click
-	bool wasDown = false; 
+	wasDown = false; 
 
 	const std::chrono::microseconds cycleDuration(1'000'000 / dataRate); //200hz
 	while (update) 
@@ -147,6 +156,8 @@ void UpdateLoop()
 				const std::chrono::microseconds cycleDurationU(1'000'000 / dataRate); //runs this loop only at 200hz to prevent cpu burn
 				while ((((activator.isActive(activeCon)) || (NoReqAcGyrocursor && isActivation)) && update) && !NoGyroCursor)
 				{
+					auto cycleStartU = std::chrono::high_resolution_clock::now(); //muss höher TDODOTOSoTODO
+					SDL_PumpEvents(); //since gyro isnt an event (the while (pollevent) ignores it) and i run ui at a target of 15 fps we need to pump here to have proper 200hz in the update loop even though its not threadsafe but eh
 					if (!(activator.isActive(activeCon)) && (NoReqAcGyrocursor && toggleWasDown))
 					{
 						toggleWasDown = false;
@@ -161,83 +172,86 @@ void UpdateLoop()
 						}
 						break;
 					}
-					auto cycleStartU = std::chrono::high_resolution_clock::now();
-					SDL_PumpEvents(); //since gyro isnt an event (the while (pollevent) ignores it) and i run ui at a target of 15 fps we need to pump here to have proper 200hz in the update loop even though its not threadsafe but eh
-					SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2); //read delta gyro data and place it in our delta array
-
-					float data[2] = { 0.0f, 0.0f };
-					//subtracts drift
-					DYNdata[1] -= avgDriftX;
-					DYNdata[0] -= avgDriftY;
-
-					//inverts
-					if (!invX)
+					ClickAndOrDrag();
+					if (!(!noLock && lock.isActive(activeCon))) //if locking is on and locking is pressed NOT; then do not lock
 					{
-						DYNdata[1] *= -1;
+						SDL_GetGamepadSensorData(activeCon, SDL_SENSOR_GYRO, DYNdata, 2); //read delta gyro data and place it in our delta array
+
+						float data[2] = { 0.0f, 0.0f };
+						//subtracts drift
+						DYNdata[1] -= avgDriftX;
+						DYNdata[0] -= avgDriftY;
+
+						//inverts
+						if (!invX)
+						{
+							DYNdata[1] *= -1;
+						}
+						if (!invY)
+						{
+							DYNdata[0] *= -1;
+						}
+
+						const float threashold = 0.02f; //as drift is not constant it is not zeroed out but very small. this threashold throws out deltas presumed drift
+
+						if (DYNdata[0] > threashold || DYNdata[0] < -threashold) //discard if movement is so minor it is probably drift
+						{
+							data[0] = DYNdata[0]; //+=
+						}
+						if (DYNdata[1] > threashold || DYNdata[1] < -threashold)
+						{
+							data[1] = DYNdata[1];
+						}
+
+						//checks if values were negative as calculation calculates in absolutes
+						int nill = 1;
+						if (data[1] < 0) { nill = -1; }
+
+						int nuhull = 1;
+						if (data[0] < 0) { nuhull = -1; }
+
+						//predetermined max movement that should be neccessary to go from 0 to edge of screen
+
+						float MaxGyroForComforty = 40.0f;
+						float MaxGyroForComfortx = 40.0f;
+
+						//if at edge, do not add to data. this way you dont have to move all the way back to come back from the edge
+						//if you moved way outside bounce you would normally hae to move the same distance back. this way you dont
+						if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
+						if (data[1] < -MaxGyroForComforty) { data[1] = -MaxGyroForComforty; }
+
+						if (data[0] >= MaxGyroForComfortx) { data[0] = MaxGyroForComfortx; }
+						if (data[0] < -MaxGyroForComfortx) { data[0] = -MaxGyroForComfortx; }
+
+						float newposx = 0.0f;
+						float newposy = 0.0f;
+
+						if (!data[1] == 0)
+						{
+							data[1] = (((abs(data[1]) / MaxGyroForComforty) * (float)(screenWidth / 2)) * nill);
+						}
+						if (!data[0] == 0)
+						{
+							data[0] = (((abs(data[0]) / MaxGyroForComfortx) * (float)(screenHeight / 2)) * nuhull);
+						}
+
+						GetCursorPos(&cursorPos);
+
+						cursorPos.y = -newposy + screenHeight / 2;
+						cursorPos.x = -newposx + screenWidth / 2;
+
+						// Move the mouse
+						//SetCursorPos(cursorPos.x, cursorPos.y);
+						INPUT iput = { 0 };
+						iput.type = INPUT_MOUSE;
+						iput.mi.dx = data[1] * sensitivity;
+						iput.mi.dy = data[0] * sensitivity;
+						iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
+						SendInput(1, &iput, sizeof(INPUT));
 					}
-					if (!invY)
-					{
-						DYNdata[0] *= -1;
-					}
-
-					const float threashold = 0.02f; //as drift is not constant it is not zeroed out but very small. this threashold throws out deltas presumed drift
-
-					if (DYNdata[0] > threashold || DYNdata[0] < -threashold) //discard if movement is so minor it is probably drift
-					{
-						data[0] = DYNdata[0]; //+=
-					}
-					if (DYNdata[1] > threashold || DYNdata[1] < -threashold)
-					{
-						data[1] = DYNdata[1];
-					}
-
-					//checks if values were negative as calculation calculates in absolutes
-					int nill = 1;
-					if (data[1] < 0) { nill = -1; }
-
-					int nuhull = 1;
-					if (data[0] < 0) { nuhull = -1; }
-
-					//predetermined max movement that should be neccessary to go from 0 to edge of screen
-
-					float MaxGyroForComforty = 40.0f;
-					float MaxGyroForComfortx = 40.0f;
-
-					//if at edge, do not add to data. this way you dont have to move all the way back to come back from the edge
-					//if you moved way outside bounce you would normally hae to move the same distance back. this way you dont
-					if (data[1] >= MaxGyroForComforty) { data[1] = MaxGyroForComforty; }
-					if (data[1] < -MaxGyroForComforty) { data[1] = -MaxGyroForComforty; }
-
-					if (data[0] >= MaxGyroForComfortx) { data[0] = MaxGyroForComfortx; }
-					if (data[0] < -MaxGyroForComfortx) { data[0] = -MaxGyroForComfortx; }
-
-					float newposx = 0.0f;
-					float newposy = 0.0f;
-
-					if (!data[1] == 0)
-					{
-						data[1] = (((abs(data[1]) / MaxGyroForComforty) * (float)(screenWidth / 2)) * nill);
-					}
-					if (!data[0] == 0)
-					{
-						data[0] = (((abs(data[0]) / MaxGyroForComfortx) * (float)(screenHeight / 2)) * nuhull);
-					}
-
-					GetCursorPos(&cursorPos);
-
-					cursorPos.y = -newposy + screenHeight / 2;
-					cursorPos.x = -newposx + screenWidth / 2;
-
-					// Move the mouse
-					//SetCursorPos(cursorPos.x, cursorPos.y);
-					INPUT iput = { 0 };
-					iput.type = INPUT_MOUSE;
-					iput.mi.dx = data[1] * sensitivity;
-					iput.mi.dy = data[0] * sensitivity; 
-					iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
-					SendInput(1, &iput, sizeof(INPUT));
-
-					//implemented this way to enable hold and drag functiponality
+					
+					//implemented this way to enable hold and drag functiponality, komplett eigene funktion mit check if activated villeicht auf anderem thread sogar
+					/*
 					if (((click.isActive(activeCon)) && !wasDown) && !NoLeftClick)
 					{
 						inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
@@ -250,6 +264,8 @@ void UpdateLoop()
 						SendInput(1, inputs, sizeof(INPUT));
 						wasDown = false;
 					}
+					*/
+					
 					auto cycleEndU = std::chrono::high_resolution_clock::now();
 					auto elapsedU = std::chrono::duration_cast<std::chrono::microseconds>(cycleEndU - cycleStartU);
 
@@ -262,7 +278,7 @@ void UpdateLoop()
 				}
 			}
 			isActivation = false;
-			//in case do not require activation for left click is on
+			/*
 			if (((click.isActive(activeCon)) && !wasDown) && NoReqAcLeftClick && !NoLeftClick)
 			{
 				inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
@@ -275,6 +291,9 @@ void UpdateLoop()
 				SendInput(1, inputs, sizeof(INPUT));
 				wasDown = false;
 			}
+			*/
+			//in case do not require activation for left click is on
+			if (NoReqAcLeftClick) { ClickAndOrDrag(); }
 		}
 		auto cycleEnd = std::chrono::high_resolution_clock::now();
 		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(cycleEnd - cycleStart);
@@ -285,6 +304,8 @@ void UpdateLoop()
 		}
 	}
 }
+
+
 
 
 
@@ -306,7 +327,7 @@ void UpdateCon(int pActiveConId) //sets all relevent variable to update the cont
 	dataRate = (int)rete;
 
 
-	if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) {
+	if (!SDL_GamepadSensorEnabled(activeCon, SDL_SENSOR_GYRO)) { //TO_DO
 	}
 }
 
@@ -369,7 +390,7 @@ int main() //main thread reads settings and then does ui :: todo falls lesen err
 	activator.activeLable = SDL_GetGamepadStringForButton(activator.button);
 
 	click.button = static_cast<SDL_GamepadButton>(SDL_GAMEPAD_BUTTON_EAST);
-	click.activeLable = SDL_GetGamepadStringForButton(activator.button);
+	click.activeLable = SDL_GetGamepadStringForButton(click.button);
 
 	if (std::ifstream("MotionCursor.ini"))
 	{
@@ -384,15 +405,6 @@ int main() //main thread reads settings and then does ui :: todo falls lesen err
 			file >> fontSize;
 			file >> avgDriftX;
 			file >> avgDriftY;
-
-			/*
-			if (avgDriftX != 0 && avgDriftY != 0) //if controller has no drift then it will mistakenly think its not calibarated but no biggie
-			{
-				calibrated = true; //for ui purposes wegmachen für WAIT BRBUHeiiiieeieeieieieieioeioeieoieoiweoiopiiojijpi4oi einfach calibrated lesen und schreiben und wenn updated con calibrated = false
-			}
-			*/
-			
-
 			file >> sensitivity;
 
 			file >> temporus;
@@ -430,7 +442,6 @@ int main() //main thread reads settings and then does ui :: todo falls lesen err
 			calibrated = calibratedConName.compare("Z") != 0; //der waix mit dem offbrand amazon controller dessen name tatsächlich Z ist :: if calibratedcon name exists then the configuration for that con is saved apperantly
 		}
 	}
-	
 	SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 	mainRender(NULL, nullptr);
 	return 0;
