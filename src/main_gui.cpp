@@ -45,6 +45,7 @@ bool invY = false;
 bool noLock = true;
 bool noReset = true;
 float fontSize = 2.0f;
+float deadzone = 0.0f;
 SDL_Event event;
 // Main code
 
@@ -205,7 +206,9 @@ int mainRender(int, char**)
                 ImGui::DockBuilderSetNodeSize(dockspace_id, ImVec2(0.45f, 0.55f));
 
                 ImGuiID dock_main_id = dockspace_id;
+                ImGui::DockBuilderDockWindow("extras", dock_main_id);
                 ImGui::DockBuilderDockWindow("Settings", dock_main_id);
+                
 
                 ImGui::DockBuilderFinish(dockspace_id);
             }
@@ -223,6 +226,44 @@ int mainRender(int, char**)
             ImGui::ShowDemoWindow(&show_demo_window);
 
         //ImGui::DockBuilderGetNode(your_id) == 0;
+        
+                //extras tab
+        {
+            ImGuiWindowFlags window_flags = 0;
+            window_flags |= ImGuiWindowFlags_NoTitleBar;
+            window_flags |= ImGuiWindowFlags_NoCollapse;
+            window_flags |= ImGuiConfigFlags_ViewportsEnable;
+            window_flags |= ImGuiWindowFlags_NoResize;
+            window_flags |= ImGuiWindowFlags_NoMove;
+
+
+            //todo ganz viele bools, use sticks, use dpad, use left stick etc.
+
+
+            ImGui::Begin("extras", NULL, window_flags);
+
+            
+            ImGui::Text("deadzone");
+            ImGui::SameLine();
+            if (ImGui::Button("reset"))
+            {
+                deadzone = 0.0f;
+            }
+            ImGui::SameLine();
+            ImGui::SliderFloat("%", &deadzone, 0.0f, 100.0f);
+
+
+            std::string str4 = std::to_string(stickX);
+            char const* pchar4 = str4.c_str();
+            ImGui::TextUnformatted(pchar4);
+            str4 = std::to_string(stickY);
+            pchar4 = str4.c_str();
+            ImGui::TextUnformatted(pchar4);
+
+            ImGui::End();
+
+        }
+		
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
             ImGuiWindowFlags window_flags = 0;
@@ -403,12 +444,7 @@ int mainRender(int, char**)
             ImGui::TextUnformatted("calibration takes less than a second and is controller specific, only latest calibration is saved");
             ImGui::TextUnformatted("calibrating only affect this program, not the controller");
 
-            std::string str4 = std::to_string(stickX);
-            char const* pchar4 = str4.c_str();
-            ImGui::TextUnformatted(pchar4);
-            str4 = std::to_string(stickY);
-            pchar4 = str4.c_str();
-            ImGui::TextUnformatted(pchar4);
+
 
             //ImGui::TextUnformatted("in case of gyro weirdness : reconnect controllers, restart programs gucken ob das noch passiert");
 
@@ -422,6 +458,7 @@ int mainRender(int, char**)
 
             ImGui::End();
         }
+
         ////////////////////////////////////
         
         /////////////////////////////////////////////

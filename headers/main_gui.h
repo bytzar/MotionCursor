@@ -41,6 +41,7 @@ extern hotkey reset;
 
 extern float stickX;
 extern float stickY;
+extern float deadzone;
 
 extern bool globalListening;
 

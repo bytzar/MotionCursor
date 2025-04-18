@@ -136,24 +136,38 @@ void ResetCursorPos() //fun fact lock erfüllt die y reset funktionalität von spl
 	}
 }
 
-void StickInput() //todo toggle das man auch left stick benutzen kann
+void StickInput() //todo toggle das man auch left stick benutzen kann und dpad
 {
 	stickX = SDL_GetGamepadAxis(activeCon, SDL_GAMEPAD_AXIS_RIGHTX) / 32767.0f;
 	stickY = SDL_GetGamepadAxis(activeCon, SDL_GAMEPAD_AXIS_RIGHTY) / 32767.0f;
 
-	if (fabs(stickX) < 0.1f) stickX = 0.0f;
-	if (fabs(stickY) < 0.1f) stickY = 0.0f;
+	stickX = std::round(stickX * 100.0f) / 100.0f;
+	stickY = std::round(stickY * 100.0f) / 100.0f;
 
-	if (fabs(stickX) > 0.9f) stickX = 1.0f;
-	if (fabs(stickY) > 0.9f) stickY = 1.0f;
+
+	if (fabs(stickX) <= deadzone / 100) stickX = 0.0f;
+	if (fabs(stickY) <= deadzone / 100) stickY = 0.0f;
+
+	/*
+		if ((stickX) > 0.9f) stickX = 1.0f;
+	if ((stickY) > 0.9f) stickY = 1.0f;
+
+
+	if ((stickX) < -0.9f) stickX = -1.0f;
+	if ((stickY) < -0.9f) stickY = -1.0f;
+	*/
+
 
 	//movecurosor function?
-	INPUT iput = { 0 };
+	/*
+		INPUT iput = { 0 };
 	iput.type = INPUT_MOUSE;
-	iput.mi.dx = stickX * sensitivity *15;
-	iput.mi.dy = stickY * sensitivity *15;
+	iput.mi.dx = stickX * 15;
+	iput.mi.dy = stickY * 15;
 	iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
 	SendInput(1, &iput, sizeof(INPUT));
+	*/
+
 }
 
 void UpdateLoop()
@@ -170,7 +184,7 @@ void UpdateLoop()
 	inputs[0].type = INPUT_MOUSE; //var for simulating left click
 	wasDown = false; 
 
-	const std::chrono::microseconds cycleDuration(1'000'000 / dataRate); //200hz
+	const std::chrono::microseconds cycleDuration(1'000'000 / 1); //200hzdataRate
 	while (update) 
 	{
 		auto cycleStart = std::chrono::high_resolution_clock::now();
@@ -288,8 +302,8 @@ void UpdateLoop()
 						//SetCursorPos(cursorPos.x, cursorPos.y);
 						INPUT iput = { 0 };
 						iput.type = INPUT_MOUSE;
-						iput.mi.dx = data[1] * sensitivity;
-						iput.mi.dy = data[0] * sensitivity;
+						iput.mi.dx = (data[1] * sensitivity) + stickX * 15;
+						iput.mi.dy = (data[0] * sensitivity) + stickY * 15;
 						iput.mi.dwFlags = MOUSEEVENTF_MOVE; // relative move
 						SendInput(1, &iput, sizeof(INPUT));
 					}
