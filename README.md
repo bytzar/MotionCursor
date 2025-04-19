@@ -10,12 +10,10 @@
   </a>
 </p>
 
-# SEO
-
 # MotionCursor
 Control your mouse with your controller! MotionCurosr reads your controller's gyro data to offset your cursors position and simulate left clicks. No longer are you chained to a mouse and keyboard, when you just want to sit back and relax playing games with your controller. This program fills a hole in Wii U emulation, enabling you to fully enjoy the benefits of the touchscreen without having to reach for your mouse. But not just in Wii U emulation, 3Ds, Bluestacks or just plain when you have your laptop plugged into a TV the chains are off. Control Windows now with your controller on your couch, with your chair leened back. Break the input triangle into a focused dot.
 
-# How-To
+# How To
 ![image](https://github.com/user-attachments/assets/f523a74b-7fb4-4611-b0f3-a0495912ad6e)
 If your controller is not already connected on launch, hit `Refresh` and check the `Controllers` button.
 - place your controller on a flat surface and hit `calibrate`
@@ -26,7 +24,7 @@ If your controller is not already connected on launch, hit `Refresh` and check t
 - for cemu users it is recommended to map the same button used to display the gamepad screen and to also copy whether you set up toggle or hold
 - then choose which button shall emulate a left click vi `remap click button`
 
-# features
+# Features
 - MotionCursor is not bound to your Windows cursor, as it emulates mouse movements. This means, you can use this in games which disable the cursor (e.g. Minecraft). So you could play it like how the camera controls in Splatoon.
 - You can map a `lock` and a `reset` button
 - `reset` positions the cursor in the center of your primary monitor
@@ -41,7 +39,7 @@ Depending on the brnach, following functionality is to come:
 - hiding theprogram to systray (b: ?)
 - running it as a startup program (b: ?)
 
-# branches
+# Branches
 - master, the lightest version, dedicated to complementing other games, and your comfort
 - stickcursor, implement more sophisticated mouse and keyboard emulation with the controller, dedicated to playing other games with this new control scheme,  and more accessibility use cases
 - macros, a dead branch which had awful bugs BUT technically functional, let you record a position on screen and via hotkey position your cursor there and click quickly
@@ -59,3 +57,6 @@ Have CMake installed.
 - You might have to set MotionCurser as Startup Project in the solution explorer
 - Compile
 - The relevant files are `main.cpp`, `main_gui.cpp` and `main_gui.h` (latter may be buried under external dependencies)
+
+# SEO
+Use controller for cursor windows, use controller as mouse, control mouse with controller, move cursor with controller, gamepad mouse Windows, Windows controller mouse tool, controller as mouse Windows 10, controller as mouse Windows 11, map controller to mouse, joystick mouse emulator, turn gamepad into mouse, use PS5 controller as mouse, use Switch Pro controller as mouse, use Xbox controller to move mouse, use controller to move cursor, mouse control with game controller, game controller cursor control, controller mouse movement tool, motion controls as mouse, gyro mouse Windows, gyro aim Windows, use controller gyro for mouse, motion control mouse emulator, Steam Deck gyro mouse Windows, PS5 gyro mouse PC, map gyro to mouse movement, gyroscope to mouse cursor, use motion controls on PC, controller gyro mouse support, move mouse with joystick, convert gamepad to mouse, joystick to mouse mapper, use controller as touchpad, emulate mouse with controller, controller pointer movement, aim with controller gyro, Windows gyro aiming, motion aiming on PC, how to use controller to move mouse, how to control mouse with controller, mouse with gamepad on Windows, best controller mouse software, lightweight controller mouse tool, controller mouse alternative to Steam Input, controller mouse for non-Steam games
