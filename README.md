@@ -22,7 +22,7 @@ If your controller is not already connected on launch, hit `Refresh` and check t
 - hit the `remap activation button` and the press the desired button on your controller
 - whenever that button is held down, functionality will be active
 - for cemu users it is recommended to map the same button used to display the gamepad screen and to also copy whether you set up toggle or hold
-- then choose which button shall emulate a left click vi `remap click button`
+- then choose which button shall emulate a left click via `remap click button`
 
 # Features
 - MotionCursor is not bound to your Windows cursor, as it emulates mouse movements. This means, you can use this in games which disable the cursor (e.g. Minecraft). So you could play it like how the camera controls in Splatoon.
