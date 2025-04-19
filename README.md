@@ -34,7 +34,7 @@ If your controller is not already connected on launch, hit `Refresh` and check t
 
 # Roadmap
 Depending on the brnach, following functionality is to come:
-- offsetting your mouse with control sticks (b: stickcursor)
+- offsetting your mouse with control sticks and dpad (b: stickcursor)
 - mapping controller inputs to keyboard keys (b: ?)
 - hiding theprogram to systray (b: ?)
 - running it as a startup program (b: ?)
