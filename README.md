@@ -10,30 +10,42 @@
   </a>
 </p>
 
-
-# Update
-Due to issues, macros have been removed from master and the master release which significantly increased performance, stability and consistency. Macros still have a place as a general purpose utility, but not in the context of gaming. The last macro release can be found in release v1.0.
+# SEO
 
 # MotionCursor
-This program maps gyro inputs from an SDL3 supported controller to the Windows cursor, as well as the EAST button to left click. Even though the intended usage is for QoL Splatoon on CEMU, this tool also makes perfect sense to use if you have a pc on a tv setup, so you would not have to have a mouse with you or get up all the time enabling you to sit back and relax. In splatoon, you no longer need to jankily lift your hand to reach for your mouse in order to superjump every death (it bugged me crazy). Now you wont need to take your hands of your controler mid match. Cemu has now, on my release day, beat me to the punch by releasing a graphics pack mapping the dpad to superjumping ALTHOUGH I assume you cannot use it to jump to beacons so I've still got one up on them. Additionaly, thinking of Twilight princess HD, you could make a macro for the wolf human quick transform on the gamepad so I suppose I have 2+ up on cemu.
+Control your mouse with your controller! MotionCurosr reads your controller's gyro data to offset your cursors position and simulate left clicks. No longer are you chained to a mouse and keyboard, when you just want to sit back and relax playing games with your controller. This program fills a hole in Wii U emulation, enabling you to fully enjoy the benefits of the touchscreen without having to reach for your mouse. But not just in Wii U emulation, 3Ds, Bluestacks or just plain when you have your laptop plugged into a TV the chains are off. Control Windows now with your controller on your couch, with your chair leened back. Break the input triangle into a focused dot.
 
-Other CEMU or 3DS games even may profit from this as well. Say Wind Waker for example. Sure, you still have to pause, but this is still way directer than navigating that inventory with sticks.
-This may have some extended use cases for laptops plugged into TVs for example, so you needn't get up or have keyboard and mice next to you.
-It may even serve accesibility purposes. Should there be such need reach out so I'll make it have some more QoL improvements like launch on startup.
+# How-To
+![image](https://github.com/user-attachments/assets/f523a74b-7fb4-4611-b0f3-a0495912ad6e)
+If your controller is not already connected on launch, hit `Refresh` and check the `Controllers` button.
+- place your controller on a flat surface and hit `calibrate`
+- calibration is swift, the ui will let you know once it has finished
+- an activation button is used to control when the cursor should be moved based on gyro, this functionality can be adjusted to be a toggle or to not be required
+- hit the `remap activation button` and the press the desired button on your controller
+- whenever that button is held down, functionality will be active
+- for cemu users it is recommended to map the same button used to display the gamepad screen and to also copy whether you set up toggle or hold
+- then choose which button shall emulate a left click vi `remap click button`
 
-# Usage
-- Download latest release
-- Unzip entire folder
-- run 'MotionCursor.exe'
-- It should automatically detect your controller, if it was connected before launch
-- if not, click refresh to refresh controller list
-- place your controller ona flat surface, and hit calibrate if expiriencing gyro drift
-- remap the activation button to your liking
-- when held down gyro mapping to cursor is active
+# features
+- MotionCursor is not bound to your Windows cursor, as it emulates mouse movements. This means, you can use this in games which disable the cursor (e.g. Minecraft). So you could play it like how the camera controls in Splatoon.
+- You can map a `lock` and a `reset` button
+- `reset` positions the cursor in the center of your primary monitor
+- `lock` disables gyro mapping in cases where you would want to repostion your hand without moving the camera
+- additionaly, it can be tough navigating windows when the mouse is jittery, so you can lock it and then click easily
+- when the program is exited properly all settings are saved to `MotionCursor.ini`, next to theexe. If you had used multiple controllers and calibrated them, the last calibration will be written to file
 
-- Hold down the Screenshot button to activate functionality. Once release functionality is disabled, allowing your cursor to hide. Once reactivated it centers the cursor before moving it.
+# Roadmap
+Depending on the brnach, following functionality is to come:
+- offsetting your mouse with control sticks (b: stickcursor)
+- mapping controller inputs to keyboard keys (b: ?)
+- hiding theprogram to systray (b: ?)
+- running it as a startup program (b: ?)
 
-This was designed with the Nintendo Switch pro conroller in mind, but should work with others as well. While the screenshot button is held down, gyro inputs will be mapped to the mouse cursor and the A button (East) to left mouse click. The A button can be held down for holding the left click (holding and dragging is implemented). Both will release parallely. Additionaly, before gyro data is mapped to the cursor it is reset to the middle of the screen.
+# branches
+- master, the lightest version, dedicated to complementing other games, and your comfort
+- stickcursor, implement more sophisticated mouse and keyboard emulation with the controller, dedicated to playing other games with this new control scheme,  and more accessibility use cases
+- macros, a dead branch which had awful bugs BUT technically functional, let you record a position on screen and via hotkey position your cursor there and click quickly
+- dev, dev
 
 # Compile yourself
 Have git installed.
@@ -46,3 +58,4 @@ Have CMake installed.
 - Open newly created MotionCursor.sln in build
 - You might have to set MotionCurser as Startup Project in the solution explorer
 - Compile
+- The relevant files are `main.cpp`, `main_gui.cpp` and `main_gui.h` (latter may be buried under external dependencies)
